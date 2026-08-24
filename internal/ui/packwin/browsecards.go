@@ -88,10 +88,10 @@ func (a *browseActivity) card(h modrinth.Hit) fyne.CanvasObject {
 func (a *browseActivity) listRow(h modrinth.Hit) fyne.CanvasObject {
 	lines := []fyne.CanvasObject{
 		widgets.Strong(h.Title),
-		widgets.Dim(h.Description),
+		widgets.Dim(clip(h.Description)),
 	}
 	if detail := a.detailLine(h); detail != "" {
-		lines = append(lines, widgets.Caption(detail))
+		lines = append(lines, widgets.Caption(clip(detail)))
 	}
 
 	row := container.NewBorder(nil, nil,
@@ -121,11 +121,17 @@ func (a *browseActivity) detailLine(h modrinth.Hit) string {
 	return strings.Join(parts, "  ")
 }
 
-// cardAction is the add control, or a note that the mod is already in the
-// pack.
+// cardAction is the add control, or for a mod the pack already has, a
+// note saying so beside a control to take it back out.
 func (a *browseActivity) cardAction(h modrinth.Hit) fyne.CanvasObject {
-	if _, ok := a.installed[h.ProjectID]; ok {
-		return container.NewHBox(widgets.Status("In this pack", widgets.StateSuccess))
+	if installed, ok := a.installed[h.ProjectID]; ok {
+		remove := widget.NewButtonWithIcon("", fynetheme.DeleteIcon(), func() {
+			confirmRemoveMod(a.deps, installed)
+		})
+		remove.Importance = widget.LowImportance
+
+		return container.NewHBox(
+			widgets.Status("In this pack", widgets.StateSuccess), remove)
 	}
 
 	add := widget.NewButtonWithIcon("Add", fynetheme.ContentAddIcon(), func() {
@@ -153,6 +159,16 @@ func (a *browseActivity) add(h modrinth.Hit) {
 			return a.deps.client().AddModrinth(ctx, h.Ref(), deps)
 		})
 	})
+}
+
+// clip shortens a line to what a row shows, since canvas text neither
+// wraps nor ellipsises on its own.
+func clip(text string) string {
+	runes := []rune(text)
+	if len(runes) <= tokens.BrowseLineChars {
+		return text
+	}
+	return strings.TrimRight(string(runes[:tokens.BrowseLineChars-1]), " ") + "..."
 }
 
 // categoryLine renders a hit's categories, capped so a card's second line

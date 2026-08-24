@@ -79,12 +79,30 @@ const (
 	ModCardWidth  float32 = 240
 	ModCardHeight float32 = 148
 
+	// BrowseMinWidth is the narrowest the browser asks the window to be.
+	// It fits two cards side by side, and caps what a long result line can
+	// demand.
+	BrowseMinWidth float32 = 2*ModCardWidth + SpaceXXL
+
+	// BrowseLineChars is how much of a result's description a list row
+	// shows. The row is one line by design, and canvas text neither wraps
+	// nor ellipsises, so the cut is made on the string.
+	BrowseLineChars = 96
+
 	// DialogChrome is the vertical room a dialog spends on its own title
 	// row and button row, which scrolling content has to leave free.
 	DialogChrome float32 = 96
 
 	// ExportHeight sizes the export dialog.
 	ExportHeight float32 = 340
+
+	// IgnoreHeight sizes the ignore rules dialog.
+	IgnoreHeight float32 = 460
+
+	// ModListWidth and ModListHeight size the mod list export dialog,
+	// which shows a preview of what it is about to write.
+	ModListWidth  float32 = 720
+	ModListHeight float32 = 620
 
 	// CloneHeight sizes the clone dialog.
 	CloneHeight float32 = 400

@@ -8,6 +8,7 @@ import (
 
 	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/modrinth"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
@@ -39,8 +40,9 @@ type browseActivity struct {
 	// pointer moves and would otherwise queue a request per event.
 	loading bool
 	// installed maps a project id to the mod already in the pack, so a
-	// card can say so instead of offering to add it twice.
-	installed map[string]string
+	// card can say so, and offer to remove it, instead of offering to add
+	// it twice.
+	installed map[string]pack.Mod
 }
 
 func newBrowseActivity(deps *activityDeps) *browseActivity {
@@ -52,7 +54,7 @@ func newBrowseActivity(deps *activityDeps) *browseActivity {
 		message:   widget.NewLabel(""),
 		main:      container.NewStack(),
 		mode:      deps.prefs().ViewMode,
-		installed: map[string]string{},
+		installed: map[string]pack.Mod{},
 	}
 
 	a.search.SetPlaceHolder("Search Modrinth")
@@ -98,7 +100,12 @@ func (a *browseActivity) layout() fyne.CanvasObject {
 
 	body := container.NewVBox(a.message, a.results, widgets.VSpace(tokens.SpaceMD), a.more)
 
-	a.scroll = container.NewVScroll(widgets.Inset(tokens.SpaceLG, tokens.SpaceSM, body))
+	// The results decide their own width from whatever Modrinth returned:
+	// a long description or a wide row of categories would otherwise push
+	// the window wider, and the window would then resize itself every time
+	// a search came back. Clamping the demand keeps the window still.
+	a.scroll = container.NewVScroll(widgets.ClampWidth(tokens.BrowseMinWidth,
+		widgets.Inset(tokens.SpaceLG, tokens.SpaceSM, body)))
 
 	// Reaching the bottom loads the next page, so a long browse does not
 	// need a button press per twenty results. The button stays as the
@@ -121,7 +128,7 @@ func (a *browseActivity) Reload() {
 
 // reloadInstalled indexes the pack's mods by Modrinth project id.
 func (a *browseActivity) reloadInstalled() {
-	a.installed = map[string]string{}
+	a.installed = map[string]pack.Mod{}
 
 	mods, err := a.deps.pack.Mods()
 	if err != nil {
@@ -129,7 +136,7 @@ func (a *browseActivity) reloadInstalled() {
 	}
 	for _, m := range mods {
 		if m.ModrinthID != "" {
-			a.installed[m.ModrinthID] = m.Name
+			a.installed[m.ModrinthID] = m
 		}
 	}
 }
