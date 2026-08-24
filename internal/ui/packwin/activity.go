@@ -64,8 +64,7 @@ func (w *Window) activities() []Activity {
 	list := []Activity{
 		newModsActivity(w.deps),
 		newBrowseActivity(w.deps),
-		placeholder{ActivityFiles, "Files", fynetheme.DocumentIcon(),
-			"The file tree and TOML editor are not built yet."},
+		newFilesActivity(w.deps),
 	}
 
 	if w.gitEnabled() {
