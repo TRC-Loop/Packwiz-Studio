@@ -30,6 +30,7 @@ const (
 	ActivityMods     = "mods"
 	ActivityBrowse   = "browse"
 	ActivityFiles    = "files"
+	ActivityInstance = "instance"
 	ActivityGit      = "git"
 	ActivityReleases = "releases"
 )
@@ -42,6 +43,7 @@ func (w *Window) activities() []Activity {
 		newModsActivity(w.deps),
 		newBrowseActivity(w.deps),
 		newFilesActivity(w.deps),
+		newInstanceActivity(w.deps),
 	}
 
 	if w.gitEnabled() {

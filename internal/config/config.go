@@ -94,6 +94,9 @@ type Prefs struct {
 	LastExport string `json:"lastExport,omitempty"`
 	// ModList is the last-used mod list export choice.
 	ModList ModListPrefs `json:"modList,omitempty"`
+	// Instance is the game instance this pack is tested in, which the
+	// instance activity compares against.
+	Instance InstancePrefs `json:"instance,omitempty"`
 }
 
 // defaults returns a Config for a first run. Loading unmarshals on top of

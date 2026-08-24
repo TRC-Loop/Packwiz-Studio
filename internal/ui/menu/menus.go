@@ -124,7 +124,10 @@ func activitySubmenu(activities []ActivityItem) *fyne.MenuItem {
 		return nil
 	}
 
-	digits := []fyne.KeyName{fyne.Key1, fyne.Key2, fyne.Key3, fyne.Key4, fyne.Key5}
+	digits := []fyne.KeyName{
+		fyne.Key1, fyne.Key2, fyne.Key3, fyne.Key4,
+		fyne.Key5, fyne.Key6, fyne.Key7, fyne.Key8, fyne.Key9,
+	}
 
 	children := make([]*fyne.MenuItem, 0, len(activities))
 	for i, act := range activities {

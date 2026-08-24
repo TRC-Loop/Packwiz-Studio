@@ -15,3 +15,12 @@ type ModListPrefs struct {
 	// Dir is where the last list was written, prefilling the next save.
 	Dir string `json:"dir,omitempty"`
 }
+
+// InstancePrefs is the game instance this pack is tested in.
+type InstancePrefs struct {
+	// Dir is the instance folder, the one holding config and mods.
+	Dir string `json:"dir,omitempty"`
+	// Folders are the parts of it that are compared and imported. An
+	// empty list means the defaults, not none.
+	Folders []string `json:"folders,omitempty"`
+}
