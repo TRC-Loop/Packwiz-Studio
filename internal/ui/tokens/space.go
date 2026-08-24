@@ -75,4 +75,12 @@ const (
 	// ModCardWidth and ModCardHeight size one card in the browser grid.
 	ModCardWidth  float32 = 240
 	ModCardHeight float32 = 148
+
+	// ExportHeight sizes the export dialog.
+	ExportHeight float32 = 300
+
+	// ReleaseWidth and ReleaseHeight size the release dialog, which holds
+	// a changelog field and so needs more room than a plain form.
+	ReleaseWidth  float32 = 640
+	ReleaseHeight float32 = 620
 )

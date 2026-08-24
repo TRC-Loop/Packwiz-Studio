@@ -69,8 +69,7 @@ func (w *Window) activities() []Activity {
 
 	if w.gitEnabled() {
 		list = append(list,
-			placeholder{ActivityGit, "Git", fynetheme.StorageIcon(),
-				"Staging, committing and pushing are not built yet."},
+			newGitActivity(w.deps, w.repo),
 			placeholder{ActivityReleases, "Releases", fynetheme.UploadIcon(),
 				"Release publishing is not built yet."},
 		)

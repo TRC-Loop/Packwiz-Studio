@@ -37,6 +37,7 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 		Settings:    s.launcher.ShowSettings,
 
 		Refresh:       w.RefreshIndex,
+		Export:        w.Export,
 		CheckUpdates:  w.CheckUpdates,
 		SetLogo:       w.SetLogo,
 		RevealInFiles: func() { s.reveal(w.Pack().Dir) },
@@ -55,6 +56,17 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 
 	if w.HasLogo() {
 		a.RemoveLogo = w.RemoveLogo
+	}
+
+	// Git items are absent entirely when the integration is off, so the
+	// Git menu disappears rather than sitting there greyed out.
+	if w.GitEnabled() {
+		a.GitInit = w.GitInit
+		a.GitStage = w.GitStageAll
+		a.GitCommit = w.GitCommit
+		a.GitPush = w.GitPush
+		a.GitPull = w.GitPull
+		a.OpenRemote = w.OpenRemote
 	}
 
 	// The mod actions apply to the list's selection, so they only appear
