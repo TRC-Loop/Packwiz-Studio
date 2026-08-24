@@ -34,7 +34,21 @@ type Window struct {
 	// setupDismissed records that the user closed the setup screen, so
 	// a later refresh does not put it back in front of them.
 	setupDismissed bool
+
+	// screen is which launcher screen is showing.
+	screen string
+	// newPack is the new pack form, kept across refreshes so a settings
+	// change or a finished download does not wipe what has been typed.
+	newPack *newPackForm
 }
+
+// Launcher screens.
+const (
+	// screenRecents is the default: known packs and the action column.
+	screenRecents = ""
+	// screenNewPack is the pack creation form.
+	screenNewPack = "newpack"
+)
 
 // New returns a launcher rendered into win. The title is restored
 // whenever the launcher is reinstalled, since a pack window renames the
@@ -92,11 +106,25 @@ func (w *Window) Refresh() {
 }
 
 // content picks the screen the launcher should be showing.
+//
+// The new pack form is a screen rather than a dialog. It has nine fields,
+// which is more than a popup should hold, and a dialog cannot be smaller
+// than its content's minimum size, so a tall form either clips against
+// the window or has to be capped and scrolled. A screen just scrolls.
 func (w *Window) content() fyne.CanvasObject {
 	if !w.sess.HasPackwiz() && !w.setupDismissed {
 		return w.buildSetup()
 	}
+	if w.screen == screenNewPack {
+		return w.buildNewPack()
+	}
 	return w.buildRecents()
+}
+
+// show switches the launcher to a screen.
+func (w *Window) show(screen string) {
+	w.screen = screen
+	w.Refresh()
 }
 
 // openPack hands a folder to the caller's open handler.

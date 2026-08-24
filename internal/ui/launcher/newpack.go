@@ -16,7 +16,7 @@ import (
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
-// newPackForm holds the widgets of the new pack dialog.
+// newPackForm holds the widgets of the new pack screen.
 //
 // The three version fields are dependent: a loader is chosen first, then a
 // Minecraft version, then a build of that loader for that version. Each
@@ -41,10 +41,28 @@ type newPackForm struct {
 	// games holds every Minecraft version once fetched, so toggling
 	// snapshots refilters without another request.
 	games []mcmeta.Version
+	// loaded records that the version lists have been requested, so
+	// returning to the screen does not refetch them.
+	loaded bool
 }
 
-// ShowNewPack collects everything packwiz init asks for and runs it.
+// ShowNewPack opens the pack creation screen.
 func (w *Window) ShowNewPack() {
+	if w.newPack == nil {
+		w.newPack = newForm(w)
+	}
+	w.show(screenNewPack)
+
+	// Fetching starts after the screen is up, so it appears at once and
+	// fills itself in.
+	if !w.newPack.loaded {
+		w.newPack.loaded = true
+		w.newPack.loadGameVersions()
+	}
+}
+
+// newForm builds the form's widgets.
+func newForm(w *Window) *newPackForm {
 	f := &newPackForm{
 		win:     w,
 		dir:     widget.NewEntry(),
@@ -56,12 +74,20 @@ func (w *Window) ShowNewPack() {
 
 	f.dir.SetPlaceHolder("an empty folder for the pack")
 	f.version.SetText("1.0.0")
-
 	f.buildVersionControls()
+
+	return f
+}
+
+// buildNewPack lays the form out as a launcher screen: a heading, the
+// fields in a scrolling middle, and the actions pinned to the bottom so
+// they stay reachable however tall the form gets.
+func (w *Window) buildNewPack() fyne.CanvasObject {
+	f := w.newPack
 
 	browse := widget.NewButtonWithIcon("", fynetheme.FolderOpenIcon(), f.pickFolder)
 
-	body := container.NewVBox(
+	fields := container.NewVBox(
 		widgets.Muted("Folder"),
 		container.NewBorder(nil, nil, nil, browse, f.dir),
 
@@ -84,28 +110,26 @@ func (w *Window) ShowNewPack() {
 		widgets.Muted("Loader version"),
 		f.loaderVersion,
 		f.loaderManual,
-
-		widgets.VSpace(tokens.SpaceSM),
-		f.status,
 	)
 
-	size := widgets.FitDialog(w.win, tokens.FormWidth, tokens.FormHeight)
+	create := widget.NewButtonWithIcon("Create pack", fynetheme.ConfirmIcon(),
+		func() { w.createPack(f) })
+	create.Importance = widget.HighImportance
 
-	d := dialog.NewCustomConfirm("New pack", "Create", "Cancel",
-		widgets.Scrollable(size.Width, size.Height,
-			widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
-		func(create bool) {
-			if create {
-				w.createPack(f)
-			}
-		}, w.win)
+	cancel := widget.NewButton("Cancel", func() { w.show(screenRecents) })
+	cancel.Importance = widget.LowImportance
 
-	d.Resize(size)
-	d.Show()
+	actions := container.NewVBox(
+		f.status,
+		container.NewHBox(cancel, create),
+	)
 
-	// Fetching starts after the dialog is up, so the form appears at once
-	// and fills itself in.
-	f.loadGameVersions()
+	return container.NewBorder(
+		widgets.Inset(tokens.SpaceXL, tokens.SpaceMD, widgets.Heading("New pack")),
+		widgets.Inset(tokens.SpaceXL, tokens.SpaceMD, actions),
+		nil, nil,
+		container.NewVScroll(widgets.Inset(tokens.SpaceXL, tokens.SpaceSM, fields)),
+	)
 }
 
 // pickFolder chooses the pack folder, defaulting the pack name to it.

@@ -52,6 +52,12 @@ func (w *Window) finishNewPack(dir string) {
 		dialog.ShowError(err, w.win)
 		return
 	}
+
+	// The form is discarded once its pack exists, so opening the screen
+	// again starts blank rather than showing the pack just created.
+	w.newPack = nil
+	w.screen = screenRecents
+
 	w.openPack(p.Dir)
 }
 
