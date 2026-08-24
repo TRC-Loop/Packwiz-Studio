@@ -45,6 +45,13 @@ func (p Pack) ScanTree() (*Tree, error) {
 	indexed := map[string]bool{}
 	metafiles := map[string]bool{}
 
+	// The pack's own two files are part of the pack by definition, even
+	// though packwiz does not list them in its own index.
+	indexed[FileName] = true
+	if p.IndexFile != "" {
+		indexed[p.IndexFile] = true
+	}
+
 	if files, err := p.Files(); err == nil {
 		for _, f := range files {
 			indexed[f] = true

@@ -135,7 +135,14 @@ func (c *Code) gutterWidth() float32 {
 
 // markLine puts the current line tint behind the caret's row and follows
 // the caret with the scroll.
+//
+// The entry reports a cursor move while it is still being built, before
+// this widget has a scroll to move, so the guard is not optional.
 func (c *Code) markLine() {
+	if c.scroll == nil {
+		return
+	}
+
 	cell := codeCell()
 	origin := codeOrigin(c.gutter.width)
 
@@ -151,6 +158,10 @@ func (c *Code) markLine() {
 // followCursor keeps the caret in view. The entry does no scrolling of
 // its own here, so moving off the visible area is this widget's job.
 func (c *Code) followCursor() {
+	if c.scroll == nil {
+		return
+	}
+
 	cell := codeCell()
 	origin := codeOrigin(c.gutter.width)
 
