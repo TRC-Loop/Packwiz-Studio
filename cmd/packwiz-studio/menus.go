@@ -38,6 +38,8 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 
 		Refresh:       w.RefreshIndex,
 		Export:        w.Export,
+		ExportModList: w.ExportModList,
+		IgnoreRules:   w.EditIgnoreRules,
 		CheckUpdates:  w.CheckUpdates,
 		Properties:    w.EditProperties,
 		RevealInFiles: func() { s.reveal(w.Pack().Dir) },

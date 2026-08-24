@@ -92,6 +92,8 @@ type Prefs struct {
 	// LastExport is the most recent .mrpack produced for this pack, so a
 	// release can attach it without re-exporting.
 	LastExport string `json:"lastExport,omitempty"`
+	// ModList is the last-used mod list export choice.
+	ModList ModListPrefs `json:"modList,omitempty"`
 }
 
 // defaults returns a Config for a first run. Loading unmarshals on top of

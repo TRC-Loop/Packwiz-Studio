@@ -38,8 +38,10 @@ func packMenu(a Actions) *fyne.Menu {
 	items := compact(
 		withShortcut(item("Refresh", a.Refresh), fyne.KeyR, modPrimary),
 		withShortcut(item("Export", a.Export), fyne.KeyE, modPrimary),
+		withShortcut(item("Export mod list", a.ExportModList), fyne.KeyE, modShift),
 		item("Check for updates", a.CheckUpdates),
 		separator(),
+		item("Ignore rules", a.IgnoreRules),
 		withShortcut(item("Properties", a.Properties), fyne.KeyI, modPrimary),
 		item("Reveal in file manager", a.RevealInFiles),
 	)

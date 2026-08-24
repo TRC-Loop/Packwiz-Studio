@@ -23,6 +23,8 @@ type Actions struct {
 	// Pack.
 	Refresh       func()
 	Export        func()
+	ExportModList func()
+	IgnoreRules   func()
 	CheckUpdates  func()
 	Properties    func()
 	RevealInFiles func()
