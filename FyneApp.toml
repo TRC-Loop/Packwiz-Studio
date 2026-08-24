@@ -1,0 +1,9 @@
+[Details]
+  Icon = "Icon.png"
+  Name = "Packwiz Studio"
+  ID = "com.stellarfoundry.packwizstudio"
+  Version = "0.1.0"
+  Build = 1
+
+[Migrations]
+  fyneDo = true
