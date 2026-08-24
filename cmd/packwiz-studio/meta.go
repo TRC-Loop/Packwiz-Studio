@@ -8,7 +8,7 @@ import (
 const (
 	appID   = "com.stellarfoundry.packwizstudio"
 	appName = "Packwiz Studio"
-	version = "0.1.0"
+	version = "1.0.0"
 )
 
 // declareMetadata registers app metadata in code rather than relying on
