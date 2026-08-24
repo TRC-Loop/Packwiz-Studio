@@ -28,7 +28,8 @@ func (a *gitActivity) renderCommitPane() {
 		a.stageRow(),
 		widgets.VSpace(tokens.SpaceMD),
 
-		widgets.Muted("Commit message"),
+		container.NewBorder(nil, nil,
+			widgets.Muted("Commit message"), a.generateRow(), nil),
 		a.message,
 		widgets.VSpace(tokens.SpaceSM),
 		a.commitRow(),
