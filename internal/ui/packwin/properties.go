@@ -10,6 +10,7 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
+	"github.com/PalisadeMC/Packwiz-Studio/internal/appmeta"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
@@ -96,7 +97,7 @@ func (w *Window) saveProperties(p pack.Properties) {
 		dialog.ShowError(err, w.win)
 	}
 
-	w.win.SetTitle(reloaded.Name)
+	w.win.SetTitle(appmeta.Title(reloaded.Name))
 	w.rebuildHeader()
 	w.Reload()
 }

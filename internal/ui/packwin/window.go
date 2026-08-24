@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 
+	"github.com/PalisadeMC/Packwiz-Studio/internal/appmeta"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/git"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
@@ -108,7 +109,7 @@ func New(sess *studio.Session, win fyne.Window, p pack.Pack, onClose func()) *Wi
 
 // Install puts the pack window into its window and starts its refreshes.
 func (w *Window) Install() {
-	w.win.SetTitle(w.pack.Name)
+	w.win.SetTitle(appmeta.Title(w.pack.Name))
 	w.win.SetContent(w.root)
 	w.win.Resize(fyne.NewSize(tokens.PackWindowWidth, tokens.PackWindowHeight))
 	w.installShortcuts()

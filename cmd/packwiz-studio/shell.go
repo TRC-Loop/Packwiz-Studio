@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 
+	"github.com/PalisadeMC/Packwiz-Studio/internal/appmeta"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/studio"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/launcher"
@@ -25,7 +26,7 @@ type shell struct {
 // newShell builds a shell showing the launcher.
 func newShell(sess *studio.Session, win fyne.Window) *shell {
 	s := &shell{sess: sess, win: win}
-	s.launcher = launcher.New(sess, win, appName)
+	s.launcher = launcher.New(sess, win, appmeta.Label())
 	s.launcher.SetOnOpenPack(s.openPack)
 	return s
 }
