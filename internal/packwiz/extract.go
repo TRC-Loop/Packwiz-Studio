@@ -20,8 +20,8 @@ var errNoBinary = errors.New("the downloaded archive contains no packwiz binary"
 const maxBinarySize = 200 << 20 // 200 MB
 
 // extractBinary pulls the packwiz executable out of archive and writes it
-// to dest. Only the binary is extracted — release archives also carry a
-// licence and readme, which the app has no use for.
+// to dest. Only the binary is extracted, because release archives also
+// carry a licence and a readme that the app has no use for.
 func extractBinary(archive, assetName, dest string) error {
 	if strings.HasSuffix(strings.ToLower(assetName), ".zip") {
 		return extractZip(archive, dest)

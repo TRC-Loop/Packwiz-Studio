@@ -1,5 +1,5 @@
 // Package packwiz locates, installs and drives the packwiz binary. The
-// app never reimplements packwiz's TOML, hashing or dependency logic — it
+// app never reimplements packwiz's TOML, hashing or dependency logic. It
 // shells out for every pack operation and parses what comes back.
 package packwiz
 

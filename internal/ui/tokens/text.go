@@ -1,6 +1,6 @@
 package tokens
 
-// Type scale. Four steps only — anything more invites inconsistency.
+// Type scale. Four steps only, because more invites inconsistency.
 const (
 	// TextCaption is metadata: versions, paths, category chips.
 	TextCaption float32 = 11

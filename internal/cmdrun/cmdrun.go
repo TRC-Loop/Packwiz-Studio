@@ -172,7 +172,7 @@ func (r *Runner) result(text string, failed bool) {
 }
 
 // shellQuote makes an argument readable in the log. This is for display
-// only — arguments are passed to exec directly, never through a shell.
+// only. Arguments are passed to exec directly, never through a shell.
 func shellQuote(s string) string {
 	if s == "" {
 		return `""`

@@ -63,4 +63,12 @@ const (
 	// PackWindowWidth and PackWindowHeight size a new pack window.
 	PackWindowWidth  float32 = 1100
 	PackWindowHeight float32 = 700
+
+	// SettingsWidth and SettingsHeight size the settings dialog.
+	SettingsWidth  float32 = 560
+	SettingsHeight float32 = 480
+
+	// FormWidth and FormHeight size the new pack dialog.
+	FormWidth  float32 = 520
+	FormHeight float32 = 460
 )

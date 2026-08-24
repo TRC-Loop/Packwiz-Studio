@@ -84,8 +84,8 @@ func (r Release) AssetFor(goos, goarch string) (Asset, error) {
 			continue
 		}
 		// Prefer the first match, but let a .zip win over a .tar.gz on
-		// Windows and lose to it elsewhere — matching what each platform
-		// handles natively is not required (both are supported), this
+		// Windows and lose to it elsewhere. Matching what each platform
+		// handles natively is not required, both are supported; this
 		// just keeps the choice predictable.
 		if best.Name == "" || preferred(name, goos) {
 			best = a

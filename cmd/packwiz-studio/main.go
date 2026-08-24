@@ -3,12 +3,15 @@
 package main
 
 import (
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/widget"
+	"context"
 
+	"fyne.io/fyne/v2/app"
+
+	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/launcher"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/theme"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
 )
 
 func main() {
@@ -17,9 +20,25 @@ func main() {
 	a := app.NewWithID(appID)
 	a.Settings().SetTheme(theme.New())
 
-	w := a.NewWindow(appName)
-	w.SetContent(widget.NewLabel(appName))
-	w.Resize(fyne.NewSize(tokens.LauncherWidth, tokens.LauncherHeight))
-	w.CenterOnScreen()
-	w.ShowAndRun()
+	cfg, err := config.Open()
+	if err != nil {
+		showFatal(a, err)
+		return
+	}
+
+	sess := studio.New(a, cfg)
+
+	// A missing binary is not fatal: the launcher shows a setup screen
+	// for it. The reason still goes to the log, so a broken configured
+	// path can be diagnosed rather than looking like a plain absence.
+	if err := sess.ResolvePackwiz(context.Background()); err != nil {
+		sess.Bus.Publish(logbus.KindNotice, err.Error())
+	}
+
+	win := a.NewWindow(appName)
+	l := launcher.New(sess, win, appName)
+	l.SetOnOpenPack(func(dir string) { openPack(l, dir) })
+	l.Refresh()
+
+	win.ShowAndRun()
 }

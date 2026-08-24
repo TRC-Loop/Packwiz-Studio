@@ -108,7 +108,7 @@ func (o InitOptions) args() []string {
 	}
 
 	// packwiz prompts for an omitted author or version even under -y, so
-	// both are always sent — an empty string is a valid answer.
+	// both are always sent, and an empty string is a valid answer.
 	args = append(args, "--author", strings.TrimSpace(o.Author))
 	args = append(args, "--version", strings.TrimSpace(o.Version))
 

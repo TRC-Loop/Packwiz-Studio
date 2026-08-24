@@ -19,7 +19,7 @@ func (c *Client) Refresh(ctx context.Context) (cmdrun.Result, error) {
 }
 
 // AddModrinth adds a Modrinth project to the pack. The ref must be
-// unambiguous — a project ID or an exact slug from the browser, never a
+// unambiguous: a project ID or an exact slug from the browser, never a
 // free-text search, because packwiz resolves an ambiguous search
 // interactively and the app runs non-interactively.
 func (c *Client) AddModrinth(ctx context.Context, ref string) (cmdrun.Result, error) {
@@ -38,7 +38,7 @@ func (c *Client) Update(ctx context.Context, name string) (cmdrun.Result, error)
 }
 
 // UpdateAll updates every mod in the pack. This backs the manual
-// "Check for Updates" action — the app never runs it on a timer.
+// "Check for Updates" action. The app never runs it on a timer.
 func (c *Client) UpdateAll(ctx context.Context) (cmdrun.Result, error) {
 	return c.run(ctx, "update", "--all")
 }

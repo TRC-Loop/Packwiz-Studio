@@ -5,7 +5,7 @@ package tokens
 
 import "image/color"
 
-// The chrome palette is pure grayscale — no accent colour in any
+// The chrome palette is pure grayscale, with no accent colour in any
 // structural surface, control or text tier. Levels are ordered from the
 // window ground upward. Semantic status colours are the one exception
 // and live in the block below.
@@ -46,7 +46,7 @@ var (
 
 // Semantic status colours. These are the only hues in the app: they mark
 // state, never decoration. Use them for error and warning text, git
-// clean/dirty state, and added/removed changelog entries — never as an
+// clean/dirty state, and added/removed changelog entries, never as an
 // accent on a button, a selection or a heading. Each is chosen to stay
 // legible on ColorBG without glowing.
 var (

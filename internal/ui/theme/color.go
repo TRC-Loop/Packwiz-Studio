@@ -61,7 +61,7 @@ var colors = map[fyne.ThemeColorName]color.Color{
 	fynetheme.ColorNameForegroundOnWarning: tokens.ColorOnWarning,
 	fynetheme.ColorNameForegroundOnSuccess: tokens.ColorOnSuccess,
 
-	// Chrome accent stays grey — see the note above.
+	// Chrome accent stays grey, see the note above.
 	fynetheme.ColorNamePrimary:             tokens.ColorText,
 	fynetheme.ColorNameForegroundOnPrimary: tokens.ColorBG,
 

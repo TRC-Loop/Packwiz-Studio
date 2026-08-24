@@ -18,7 +18,7 @@ type Kind int
 
 // Entry kinds.
 const (
-	// KindCommand is the invocation itself, rendered as "$ packwiz …".
+	// KindCommand is the invocation itself, rendered as "$ packwiz ...".
 	KindCommand Kind = iota
 	// KindStdout is a line the command wrote to stdout.
 	KindStdout
@@ -27,7 +27,7 @@ const (
 	// KindResult is the outcome: an exit code or a failure to start.
 	KindResult
 	// KindNotice is the app's own commentary, such as "downloading
-	// packwiz 0.20.0" — not command output.
+	// packwiz 0.20.0", not command output.
 	KindNotice
 )
 
@@ -137,8 +137,8 @@ func (b *Bus) History() []Entry {
 	return out
 }
 
-// Clear drops the history. Subscribers are not notified — the drawer
-// clears its own view when the user asks for it.
+// Clear drops the history. Subscribers are not notified, because the
+// drawer clears its own view when the user asks for it.
 func (b *Bus) Clear() {
 	b.mu.Lock()
 	b.history = nil

@@ -61,7 +61,7 @@ func (s *Store) Touch(path, name, mcVersion, loader string) error {
 }
 
 // Forget removes a pack from the known list. It does not touch the pack
-// on disk — this is "remove from recents", not "delete".
+// on disk. This is "remove from recents", not "delete".
 func (s *Store) Forget(path string) error {
 	key := normalize(path)
 	return s.Update(func(c *Config) {
