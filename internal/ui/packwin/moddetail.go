@@ -128,21 +128,9 @@ func (a *modsActivity) actionRow(m pack.Mod) fyne.CanvasObject {
 	return row
 }
 
-// confirmRemove asks before deleting a mod, since removal rewrites the
-// pack and is not undone by the app.
+// confirmRemove asks before deleting a mod.
 func (a *modsActivity) confirmRemove(m pack.Mod) {
-	dialog.NewConfirm("Remove mod",
-		"Remove "+m.Name+" from this pack?",
-		func(ok bool) {
-			if !ok {
-				return
-			}
-			a.run("remove "+m.Slug(), func(ctx context.Context) error {
-				return exec(func() (cmdrun.Result, error) {
-					return a.deps.client().Remove(ctx, m.Slug())
-				})
-			})
-		}, a.deps.win).Show()
+	confirmRemoveMod(a.deps, m)
 }
 
 // applySide writes the new side flag and refreshes the index, since the

@@ -116,13 +116,28 @@ func (a *modsActivity) renderList() {
 }
 
 // row is one mod in the list.
+//
+// The delete control sits in the row itself as well as in the detail
+// pane: removing a mod is a list operation, and going through a selection
+// first to reach it is a step for nothing.
 func (a *modsActivity) row(m pack.Mod) *widgets.Clickable {
 	path := m.Path
 
 	label := widgets.Body(m.Name)
 	label.Truncation = fyne.TextTruncateEllipsis
 
-	line := container.NewBorder(nil, nil, nil, a.rowBadge(m), label)
+	remove := widget.NewButtonWithIcon("", fynetheme.DeleteIcon(), func() {
+		confirmRemoveMod(a.deps, m)
+	})
+	remove.Importance = widget.LowImportance
+
+	trailing := container.NewHBox()
+	if badge := a.rowBadge(m); badge != nil {
+		trailing.Add(badge)
+	}
+	trailing.Add(remove)
+
+	line := container.NewBorder(nil, nil, nil, trailing, label)
 
 	row := widgets.NewClickable(line, func() { a.selectMod(path) })
 	row.SetSelected(path == a.selected)
