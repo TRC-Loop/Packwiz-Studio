@@ -53,6 +53,12 @@ func (s *shell) openPack(dir string) {
 
 	w := packwin.New(s.sess, s.win, p, s.showLauncher)
 	s.current = w
+
+	// Some menu items depend on what is selected inside the window, and
+	// Fyne menus cannot be changed once installed, so the whole menubar is
+	// rebuilt whenever the window says its contents moved on.
+	w.SetOnMenuChanged(func() { s.applyMenu(s.packMenu(w)) })
+
 	w.Install()
 	s.applyMenu(s.packMenu(w))
 }

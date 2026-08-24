@@ -63,8 +63,7 @@ func (p placeholder) Main() fyne.CanvasObject {
 func (w *Window) activities() []Activity {
 	list := []Activity{
 		newModsActivity(w.deps),
-		placeholder{ActivityBrowse, "Browse", fynetheme.SearchIcon(),
-			"The Modrinth browser is not built yet."},
+		newBrowseActivity(w.deps),
 		placeholder{ActivityFiles, "Files", fynetheme.DocumentIcon(),
 			"The file tree and TOML editor are not built yet."},
 	}

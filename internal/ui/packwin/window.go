@@ -1,8 +1,6 @@
 package packwin
 
 import (
-	"context"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
@@ -27,6 +25,9 @@ type Window struct {
 
 	// onClose hands the window back to whatever opened this pack.
 	onClose func()
+
+	// onMenuChanged asks the shell to reinstall the menubar.
+	onMenuChanged func()
 
 	// deps is what the activities share.
 	deps *activityDeps
@@ -61,6 +62,7 @@ func New(sess *studio.Session, win fyne.Window, p pack.Pack, onClose func()) *Wi
 		win:           win,
 		pack:          p,
 		onPackChanged: w.Reload,
+		onMenuChanged: w.rebuildMenu,
 	}
 
 	w.items = w.activities()
@@ -151,6 +153,17 @@ func (w *Window) Current() string { return w.current }
 // View menu reaches the icon rail's sections by name.
 func (w *Window) Select(id string) { w.selectActivity(id) }
 
+// SetOnMenuChanged registers a callback for when the menubar's contents
+// need rebuilding, such as after the mod selection changed.
+func (w *Window) SetOnMenuChanged(fn func()) { w.onMenuChanged = fn }
+
+// rebuildMenu asks the shell to reinstall the menubar.
+func (w *Window) rebuildMenu() {
+	if w.onMenuChanged != nil {
+		w.onMenuChanged()
+	}
+}
+
 // selectActivity swaps the side panel and detail area.
 func (w *Window) selectActivity(id string) {
 	for _, a := range w.items {
@@ -169,31 +182,4 @@ func (w *Window) selectActivity(id string) {
 		w.main.Refresh()
 		return
 	}
-}
-
-// ToggleSidePanel hides or shows the list pane.
-func (w *Window) ToggleSidePanel() { w.side.toggle() }
-
-// ToggleLog opens or closes the output drawer.
-func (w *Window) ToggleLog() { w.toggleLog() }
-
-func (w *Window) toggleLog() {
-	w.drawer.toggle()
-	w.status.setLogOpen(w.drawer.visible())
-}
-
-// RefreshStatus re-reads the tool and repository state. The git probe runs
-// off the main goroutine because it shells out several times.
-func (w *Window) RefreshStatus() {
-	loc := w.sess.Packwiz()
-	w.status.setPackwiz(loc.Version, loc.Path != "")
-
-	if !w.gitEnabled() {
-		return
-	}
-
-	go func() {
-		st := w.repo.Read(context.Background())
-		fyne.Do(func() { w.status.setGit(st) })
-	}()
 }

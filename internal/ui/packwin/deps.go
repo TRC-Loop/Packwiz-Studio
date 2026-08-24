@@ -11,6 +11,8 @@ import (
 	"fyne.io/fyne/v2/dialog"
 
 	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/packwiz"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
@@ -28,6 +30,12 @@ type activityDeps struct {
 	// the window can reload its activities and its status bar.
 	onPackChanged func()
 
+	// onMenuChanged is called when something the menubar depends on
+	// changed, such as the mod list's selection. Menus are rebuilt rather
+	// than mutated, since Fyne cannot reliably enable or disable an item
+	// after the menu is installed.
+	onMenuChanged func()
+
 	// busy guards against a second command starting while one is still
 	// running. packwiz rewrites the index, and two writers would leave it
 	// inconsistent.
@@ -37,6 +45,27 @@ type activityDeps struct {
 // client returns a packwiz client for this pack.
 func (d *activityDeps) client() *packwiz.Client {
 	return d.sess.Client(d.pack.Dir)
+}
+
+// menuChanged asks the window to rebuild its menubar.
+func (d *activityDeps) menuChanged() {
+	if d.onMenuChanged != nil {
+		d.onMenuChanged()
+	}
+}
+
+// prefs returns this pack's remembered choices.
+func (d *activityDeps) prefs() config.Prefs {
+	return d.sess.Cfg.Prefs(d.pack.Dir)
+}
+
+// setPrefs stores a change to this pack's choices. A failure to persist a
+// preference is not worth interrupting the user for, so it is logged
+// rather than raised.
+func (d *activityDeps) setPrefs(fn func(*config.Prefs)) {
+	if err := d.sess.Cfg.SetPrefs(d.pack.Dir, fn); err != nil {
+		d.sess.Bus.Publish(logbus.KindNotice, "could not save preference: "+err.Error())
+	}
 }
 
 // errBusy reports a command refused because another is still running.

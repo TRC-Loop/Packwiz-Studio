@@ -4,6 +4,8 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 
+	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/sysopen"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/menu"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/packwin"
@@ -39,8 +41,12 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 		SetLogo:       w.SetLogo,
 		RevealInFiles: func() { s.reveal(w.Pack().Dir) },
 
+		AddMod: w.FocusBrowse,
+
 		ToggleSidePanel: w.ToggleSidePanel,
 		ToggleLog:       w.ToggleLog,
+		GridView:        func() { w.SetViewMode(config.ViewGrid) },
+		ListView:        func() { w.SetViewMode(config.ViewList) },
 		Activities:      activityItems(w),
 
 		About:          s.showAbout,
@@ -49,6 +55,15 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 
 	if w.HasLogo() {
 		a.RemoveLogo = w.RemoveLogo
+	}
+
+	// The mod actions apply to the list's selection, so they only appear
+	// once something is selected.
+	if _, ok := w.SelectedMod(); ok {
+		a.RemoveMod = w.RemoveSelectedMod
+		a.SideClient = func() { w.SetSelectedSide(pack.SideClient) }
+		a.SideServer = func() { w.SetSelectedSide(pack.SideServer) }
+		a.SideBoth = func() { w.SetSelectedSide(pack.SideBoth) }
 	}
 
 	return menu.Build(a)

@@ -71,4 +71,8 @@ const (
 	// FormWidth and FormHeight size the new pack dialog.
 	FormWidth  float32 = 520
 	FormHeight float32 = 460
+
+	// ModCardWidth and ModCardHeight size one card in the browser grid.
+	ModCardWidth  float32 = 240
+	ModCardHeight float32 = 148
 )

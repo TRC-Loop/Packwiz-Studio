@@ -156,6 +156,10 @@ func (a *modsActivity) selectMod(path string) {
 	if m := a.find(path); m != nil {
 		a.showDetail(*m)
 	}
+
+	// The Mods menu acts on the selection, so it has to be rebuilt now
+	// that there is one.
+	a.deps.menuChanged()
 }
 
 // find looks up a mod by its metafile path.
