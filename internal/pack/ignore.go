@@ -56,12 +56,32 @@ func WriteIgnore(dir, name, content string) error {
 // product rebuilt from the metafiles.
 func DefaultGitIgnore() []string {
 	return []string{
+		"# macOS",
 		".DS_Store",
+		".AppleDouble",
+		"._*",
+		".Spotlight-V100",
+		".Trashes",
+		"",
+		"# Windows",
 		"Thumbs.db",
+		"ehthumbs.db",
+		"desktop.ini",
+		"$RECYCLE.BIN/",
+		"",
+		"# Editors",
 		".idea/",
 		".vscode/",
+		".fleet/",
+		"*.swp",
+		"*~",
+		"",
+		"# Build output",
 		"*.mrpack",
+		"*.zip",
 		"dist/",
+		"build/",
+		"out/",
 	}
 }
 
@@ -70,14 +90,24 @@ func DefaultGitIgnore() []string {
 // somebody's game folder.
 func DefaultPackwizIgnore() []string {
 	return []string{
+		"# Repository plumbing",
 		".git/**",
 		".github/**",
 		".gitignore",
+		".gitattributes",
 		".packwizignore",
 		"README.md",
 		"LICENSE",
+		"",
+		"# Build output",
 		"*.mrpack",
+		"dist/**",
+		"",
+		"# OS clutter",
 		".DS_Store",
+		"._*",
+		"Thumbs.db",
+		"desktop.ini",
 	}
 }
 

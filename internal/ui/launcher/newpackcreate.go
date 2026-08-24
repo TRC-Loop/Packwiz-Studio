@@ -8,6 +8,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 
 	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
 )
 
 // createPack validates the form, then runs packwiz init and opens the
@@ -37,11 +38,17 @@ func (w *Window) createPack(f *newPackForm) {
 				return
 			}
 
-			// The image is copied in after init, since the pack folder
-			// only exists once packwiz has written it. A failure here is
-			// reported without discarding the pack that was created.
+			// The image and the ignore files are written after init, since
+			// the pack folder only exists once packwiz has made it. A
+			// failure in either is reported without discarding the pack
+			// that was created.
 			if f.logo != "" {
 				if err := pack.SetIcon(opts.Dir, f.logo); err != nil {
+					dialog.ShowError(err, w.win)
+				}
+			}
+			if f.ignore.Checked {
+				if err := writeIgnoreRules(opts.Dir); err != nil {
 					dialog.ShowError(err, w.win)
 				}
 			}
@@ -49,6 +56,50 @@ func (w *Window) createPack(f *newPackForm) {
 			w.finishNewPack(opts.Dir)
 		})
 	}()
+}
+
+// writeIgnoreRules gives a new pack its two ignore files.
+//
+// Both are written from scratch here rather than merged: the folder was
+// empty a moment ago, and anything already in them came from packwiz
+// itself, which writes neither.
+func writeIgnoreRules(dir string) error {
+	if err := pack.WriteIgnore(dir, pack.GitIgnoreFile,
+		pack.AddRules("", pack.DefaultGitIgnore())); err != nil {
+		return err
+	}
+	return pack.WriteIgnore(dir, pack.PackwizIgnoreFile,
+		pack.AddRules("", pack.DefaultPackwizIgnore()))
+}
+
+// options turns the form into init options.
+func (f *newPackForm) options() packwiz.InitOptions {
+	loader := packwiz.LoaderFabric
+	if i := f.loader.SelectedIndex(); i >= 0 && i < len(packwiz.Loaders) {
+		loader = packwiz.Loaders[i]
+	}
+
+	return packwiz.InitOptions{
+		Dir:           f.dir.Text,
+		Name:          f.name.Text,
+		Author:        f.author.Text,
+		Version:       f.version.Text,
+		MCVersion:     f.mcVersion.Selected,
+		Loader:        loader,
+		LoaderVersion: f.chosenLoaderVersion(),
+	}
+}
+
+// chosenLoaderVersion reads whichever loader version control is in use.
+// An empty result means latest, which is what packwiz defaults to.
+func (f *newPackForm) chosenLoaderVersion() string {
+	if f.loaderManual.Visible() {
+		return f.loaderManual.Text
+	}
+	if f.loaderVersion.Selected == latestLabel {
+		return ""
+	}
+	return f.loaderVersion.Selected
 }
 
 // finishNewPack records the new pack and opens it.

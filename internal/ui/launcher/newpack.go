@@ -11,7 +11,6 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/PalisadeMC/Packwiz-Studio/internal/mcmeta"
-	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
@@ -35,6 +34,11 @@ type newPackForm struct {
 	snapshots     *widget.Check
 	loaderVersion *widget.Select
 	loaderManual  *widget.Entry
+
+	// ignore writes the two ignore files once the pack exists. It is on by
+	// default: a pack repository without them commits editor clutter and
+	// ships its own README into everybody's game folder.
+	ignore *widget.Check
 
 	status *widget.Label
 
@@ -80,6 +84,10 @@ func newForm(w *Window) *newPackForm {
 
 	f.dir.SetPlaceHolder("an empty folder for the pack")
 	f.version.SetText("1.0.0")
+
+	f.ignore = widget.NewCheck("Add recommended ignore rules", nil)
+	f.ignore.SetChecked(true)
+
 	f.buildVersionControls()
 
 	return f
@@ -128,6 +136,14 @@ func (w *Window) buildNewPack() fyne.CanvasObject {
 		),
 		widgets.Note("Optional. Saved into the pack folder as icon.png, so it "+
 			"travels with the pack and can be attached to a release."),
+
+		widgets.VSpace(tokens.SpaceSM),
+		widgets.Muted("Ignore rules"),
+		f.ignore,
+		widgets.Note("Writes .gitignore and .packwizignore: OS and editor "+
+			"clutter such as .DS_Store kept out of the repository, and the "+
+			"repository's own files kept out of the exported pack. Both can "+
+			"be edited later from the Pack menu."),
 	)
 
 	create := widget.NewButtonWithIcon("Create pack", fynetheme.ConfirmIcon(),
@@ -166,34 +182,4 @@ func (f *newPackForm) pickFolder() {
 		open.SetLocation(dir)
 	}
 	open.Show()
-}
-
-// options turns the form into init options.
-func (f *newPackForm) options() packwiz.InitOptions {
-	loader := packwiz.LoaderFabric
-	if i := f.loader.SelectedIndex(); i >= 0 && i < len(packwiz.Loaders) {
-		loader = packwiz.Loaders[i]
-	}
-
-	return packwiz.InitOptions{
-		Dir:           f.dir.Text,
-		Name:          f.name.Text,
-		Author:        f.author.Text,
-		Version:       f.version.Text,
-		MCVersion:     f.mcVersion.Selected,
-		Loader:        loader,
-		LoaderVersion: f.chosenLoaderVersion(),
-	}
-}
-
-// chosenLoaderVersion reads whichever loader version control is in use.
-// An empty result means latest, which is what packwiz defaults to.
-func (f *newPackForm) chosenLoaderVersion() string {
-	if f.loaderManual.Visible() {
-		return f.loaderManual.Text
-	}
-	if f.loaderVersion.Selected == latestLabel {
-		return ""
-	}
-	return f.loaderVersion.Selected
 }
