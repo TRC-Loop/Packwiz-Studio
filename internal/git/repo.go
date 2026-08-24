@@ -8,6 +8,7 @@ package git
 import (
 	"context"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
@@ -49,6 +50,21 @@ func (r *Repo) IsRepo(ctx context.Context) bool {
 // it is logged.
 func (r *Repo) Init(ctx context.Context) (cmdrun.Result, error) {
 	return r.run(ctx, "init")
+}
+
+// Clone copies a remote repository into dest.
+//
+// It runs in dest's parent, because dest itself does not exist yet. Auth
+// is left to git: the app assumes an SSH key or a credential helper is
+// already set up, as it does for every other remote operation.
+func Clone(ctx context.Context, runner *cmdrun.Runner, url, dest string) (cmdrun.Result, error) {
+	parent := filepath.Dir(dest)
+
+	return runner.Run(ctx, cmdrun.Spec{
+		Name: "git",
+		Args: []string{"clone", "--", url, dest},
+		Dir:  parent,
+	})
 }
 
 // probe runs a read-only command without logging it.

@@ -30,9 +30,12 @@ var ErrNotFound = errors.New("packwiz binary not found")
 type Location struct {
 	// Path is the absolute path to the binary.
 	Path string
-	// Version is whatever `packwiz --version` reported, trimmed. It may
-	// be empty: some builds print nothing useful, which is not a reason
-	// to reject the binary.
+	// Version is the build's version, when it can be determined.
+	//
+	// It is usually empty. packwiz has no version command and publishes
+	// no tagged releases, so there is nothing to ask. It is filled in
+	// only when the app installed the binary itself and therefore knows
+	// what it built.
 	Version string
 	// FromPATH records that the binary was found on PATH rather than at
 	// a configured or installed path, so settings can show where it came
@@ -70,9 +73,13 @@ func Locate(ctx context.Context, configured string) (Location, error) {
 	return loc, nil
 }
 
-// Verify checks that path is an executable packwiz and reports its
-// version. It is what the settings screen calls after the user browses
-// to a binary, so the failure is visible before the path is saved.
+// Verify checks that path is a working packwiz. It is what the settings
+// screen calls after the user browses to a binary, so a wrong pick fails
+// here rather than at the first pack operation.
+//
+// The probe is `--help` rather than `--version`, because packwiz has no
+// version flag: passing one makes it exit non-zero with "unknown flag",
+// which would reject every working binary.
 func Verify(ctx context.Context, path string) (Location, error) {
 	abs, err := filepath.Abs(path)
 	if err != nil {
@@ -87,19 +94,33 @@ func Verify(ctx context.Context, path string) (Location, error) {
 		return Location{}, errors.New(abs + " is a directory, not a binary")
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, versionTimeout)
+	ctx, cancel := context.WithTimeout(ctx, probeTimeout)
 	defer cancel()
 
-	out, err := exec.CommandContext(ctx, abs, "--version").CombinedOutput()
+	out, err := exec.CommandContext(ctx, abs, "--help").CombinedOutput()
 	if err != nil {
 		return Location{}, &UnusableError{Path: abs, Err: err, Output: string(out)}
 	}
-	return Location{Path: abs, Version: parseVersion(string(out))}, nil
+	if !looksLikePackwiz(string(out)) {
+		return Location{}, &UnusableError{
+			Path:   abs,
+			Err:    errors.New("its help output is not packwiz's"),
+			Output: string(out),
+		}
+	}
+	return Location{Path: abs}, nil
 }
 
-// versionTimeout bounds the version probe. A binary that does not answer
-// promptly is treated as unusable rather than hanging startup.
-const versionTimeout = 5 * time.Second
+// probeTimeout bounds the check. A binary that does not answer promptly is
+// treated as unusable rather than hanging startup.
+const probeTimeout = 5 * time.Second
+
+// looksLikePackwiz checks that help output came from packwiz and not from
+// some other executable that happens to accept --help.
+func looksLikePackwiz(out string) bool {
+	lower := strings.ToLower(out)
+	return strings.Contains(lower, "packwiz") && strings.Contains(lower, "modpack")
+}
 
 // UnusableError reports a path that exists but does not behave like
 // packwiz.
@@ -119,31 +140,11 @@ func (e *UnusableError) Error() string {
 
 func (e *UnusableError) Unwrap() error { return e.Err }
 
-// parseVersion pulls a version out of `packwiz --version` output. The
-// format is not guaranteed stable across releases, so anything
-// unrecognised is returned as-is rather than rejected.
-func parseVersion(out string) string {
-	line := firstLine(strings.TrimSpace(out))
-	for _, prefix := range []string{"packwiz version ", "packwiz "} {
-		if rest, ok := cutPrefixFold(line, prefix); ok {
-			return strings.TrimSpace(rest)
-		}
-	}
-	return line
-}
-
 func firstLine(s string) string {
 	if i := strings.IndexAny(s, "\r\n"); i >= 0 {
 		return s[:i]
 	}
 	return s
-}
-
-func cutPrefixFold(s, prefix string) (string, bool) {
-	if len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix) {
-		return s[len(prefix):], true
-	}
-	return "", false
 }
 
 // managedPath is where an app-installed binary lives: alongside the

@@ -99,7 +99,8 @@ func (w *Window) ShowNewPack() {
 	)
 
 	d := dialog.NewCustomConfirm("New pack", "Create", "Cancel",
-		container.NewVScroll(widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
+		widgets.Scrollable(tokens.FormWidth, tokens.FormHeight,
+			widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
 		func(create bool) {
 			if create {
 				w.createPack(f)

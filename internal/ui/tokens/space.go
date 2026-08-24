@@ -76,8 +76,15 @@ const (
 	ModCardWidth  float32 = 240
 	ModCardHeight float32 = 148
 
+	// DialogChrome is the vertical room a dialog spends on its own title
+	// row and button row, which scrolling content has to leave free.
+	DialogChrome float32 = 96
+
 	// ExportHeight sizes the export dialog.
-	ExportHeight float32 = 300
+	ExportHeight float32 = 340
+
+	// CloneHeight sizes the clone dialog.
+	CloneHeight float32 = 400
 
 	// ReleaseWidth and ReleaseHeight size the release dialog, which holds
 	// a changelog field and so needs more room than a plain form.

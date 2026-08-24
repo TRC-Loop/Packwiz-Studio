@@ -1,0 +1,175 @@
+name: Release
+
+# Builds every artefact when a release is published, then attaches them
+# to that release.
+#
+# Fyne needs a C toolchain and the platform's graphics headers, so every
+# target is built on its own native runner rather than cross compiled.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build and attach to
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  GO_VERSION: "1.23"
+  APP_NAME: packwiz-studio
+  APP_ID: com.stellarfoundry.packwizstudio
+
+jobs:
+  macos:
+    name: macOS app
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install the fyne tool
+        run: go install fyne.io/tools/cmd/fyne@latest
+
+      # A universal binary covers both Apple silicon and Intel, so one
+      # download works on any Mac.
+      - name: Package universal app bundle
+        run: |
+          fyne package \
+            --target darwin \
+            --release \
+            --src ./cmd/packwiz-studio \
+            --name "Packwiz Studio" \
+            --app-id "$APP_ID" \
+            --app-version "${VERSION#v}"
+        env:
+          VERSION: ${{ github.event.release.tag_name || inputs.tag }}
+          CGO_ENABLED: 1
+
+      - name: Zip the bundle
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "Packwiz Studio.app" \
+            "$APP_NAME-macos-universal.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: "*.zip"
+
+  windows:
+    name: Windows exe
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install the fyne tool
+        run: go install fyne.io/tools/cmd/fyne@latest
+
+      # Packaging on Windows embeds the icon and version metadata and
+      # builds without a console window attached.
+      - name: Package exe
+        shell: bash
+        run: |
+          fyne package \
+            --target windows \
+            --release \
+            --src ./cmd/packwiz-studio \
+            --name "Packwiz Studio" \
+            --app-id "$APP_ID" \
+            --app-version "${VERSION#v}"
+          mv "Packwiz Studio.exe" "$APP_NAME-windows-amd64.exe"
+        env:
+          VERSION: ${{ github.event.release.tag_name || inputs.tag }}
+          CGO_ENABLED: 1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: "*.exe"
+
+  linux:
+    name: Linux binary, deb and rpm
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      # Fyne links against X11, GL and Wayland headers, none of which are
+      # on the runner by default.
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev \
+            libwayland-dev wayland-protocols
+
+      - name: Build binary
+        run: |
+          go build -trimpath -ldflags "-s -w" \
+            -o "$APP_NAME-linux-amd64" ./cmd/packwiz-studio
+        env:
+          CGO_ENABLED: 1
+
+      - name: Install packaging tools
+        run: |
+          go install fyne.io/tools/cmd/fyne@latest
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
+      - name: Build deb and rpm
+        run: |
+          export VERSION="${VERSION#v}"
+          nfpm package --config packaging/nfpm.yaml --packager deb --target .
+          nfpm package --config packaging/nfpm.yaml --packager rpm --target .
+        env:
+          VERSION: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: |
+            packwiz-studio-linux-amd64
+            *.deb
+            *.rpm
+
+  attach:
+    name: Attach to release
+    needs: [macos, windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List what was built
+        run: ls -lh dist
+
+      - name: Upload to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name || inputs.tag }}
+          files: dist/*
+          fail_on_unmatched_files: true

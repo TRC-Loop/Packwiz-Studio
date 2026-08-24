@@ -63,6 +63,19 @@ func Status(text string, state State) *canvas.Text {
 	return sized(text, state.Color(), tokens.TextBody)
 }
 
+// Note is quiet explanatory text that may run to several lines.
+//
+// The single-line helpers above are canvas.Text, which draws a literal
+// glyph for a newline rather than breaking the line. Anything with a line
+// break, or long enough to need wrapping, has to be a Label instead.
+func Note(text string) *widget.Label {
+	l := widget.NewLabel(text)
+	l.Wrapping = fyne.TextWrapWord
+	l.SizeName = fynetheme.SizeNameCaptionText
+	l.Importance = widget.LowImportance
+	return l
+}
+
 // State selects a status colour.
 type State int
 

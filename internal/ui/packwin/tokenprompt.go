@@ -32,20 +32,18 @@ func newRememberCheck(useKeyring bool) *widget.Check {
 // tokenPrompt explains what the token needs to be able to do, which is
 // the part that is easy to get wrong when creating one.
 func tokenPrompt(host forge.Host, entry *widget.Entry, remember *widget.Check) fyne.CanvasObject {
-	scope := widget.NewLabel(scopeHint(host.Kind))
-	scope.Wrapping = fyne.TextWrapWord
-
 	body := container.NewVBox(
 		widgets.Muted("Publishing to "+host.Remote.Path()+" needs an API token."),
-		scope,
+		widgets.Note(scopeHint(host.Kind)),
 		widgets.VSpace(tokens.SpaceSM),
 		entry,
 		remember,
 		widgets.VSpace(tokens.SpaceXS),
-		widgets.Dim("The token is never written to the config file and never logged."),
+		widgets.Note("The token is never written to the config file and never logged."),
 	)
 
-	return widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)
+	return widgets.Scrollable(tokens.FormWidth, tokenPromptHeight,
+		widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body))
 }
 
 // scopeHint names the permission each host's token needs.

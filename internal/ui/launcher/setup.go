@@ -5,10 +5,7 @@ import (
 	"fmt"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
-	"fyne.io/fyne/v2/storage"
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
@@ -17,140 +14,166 @@ import (
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
 )
 
-// buildSetup is the screen shown until packwiz resolves. It offers the
-// two ways out of the situation and can be dismissed.
+// setupScreen is the first-run screen shown until packwiz resolves.
+//
+// It is laid out as one clear decision rather than a wall of controls:
+// a heading saying what is missing, a primary action that is filled in
+// once the app knows what it can do on this machine, a secondary action
+// for an existing binary, and one status line that carries everything
+// from "checking" through progress to failure.
+type setupScreen struct {
+	win *Window
+
+	primary   *widget.Button
+	secondary *widget.Button
+	skip      *widget.Button
+
+	detail   *widget.Label
+	progress *widget.ProgressBar
+	spinner  *widget.ProgressBarInfinite
+	status   *widget.Label
+}
+
+// buildSetup assembles the setup screen.
 func (w *Window) buildSetup() fyne.CanvasObject {
-	blurb := widget.NewLabel(
-		"Packwiz Studio drives the packwiz command line tool,\n" +
-			"which is not on your PATH yet.")
-	blurb.Wrapping = fyne.TextWrapWord
-
-	progress := widget.NewProgressBar()
-	progress.Hide()
-
-	note := widgets.Caption("")
-	note.Hide()
-
-	var install, browse, skip *widget.Button
-
-	setBusy := func(busy bool) {
-		for _, b := range []*widget.Button{install, browse, skip} {
-			if busy {
-				b.Disable()
-			} else {
-				b.Enable()
-			}
-		}
+	s := &setupScreen{
+		win:      w,
+		detail:   widgets.Note("Checking what this machine needs."),
+		progress: widget.NewProgressBar(),
+		spinner:  widget.NewProgressBarInfinite(),
+		status:   widgets.Note(""),
 	}
 
-	install = widget.NewButtonWithIcon("Install packwiz", fynetheme.DownloadIcon(), func() {
-		setBusy(true)
-		progress.SetValue(0)
-		progress.Show()
-		note.Text = "Contacting GitHub"
-		note.Color = tokens.ColorMuted
-		note.Show()
-		note.Refresh()
+	s.progress.Hide()
+	s.spinner.Hide()
+	s.spinner.Stop()
+	s.status.Hide()
 
-		go w.runInstall(progress, note, setBusy)
-	})
+	s.primary = widget.NewButtonWithIcon("Install packwiz",
+		fynetheme.DownloadIcon(), s.install)
+	s.primary.Importance = widget.HighImportance
+	s.primary.Disable()
 
-	browse = widget.NewButtonWithIcon("Choose an existing binary", fynetheme.FolderOpenIcon(), func() {
-		w.browseForBinary(note)
-	})
+	s.secondary = widget.NewButtonWithIcon("Locate an existing binary",
+		fynetheme.SearchIcon(), func() { s.win.browseForBinary(s.statusText) })
 
-	skip = widget.NewButton("Continue without packwiz", func() {
+	s.skip = widget.NewButton("Skip for now", func() {
 		w.setupDismissed = true
 		w.Refresh()
 	})
-	skip.Importance = widget.LowImportance
+	s.skip.Importance = widget.LowImportance
 
-	buttons := container.NewHBox(install, browse)
+	go s.describeRoute()
 
-	body := container.NewVBox(
-		widgets.Heading("Packwiz Studio"),
-		blurb,
-		widgets.VSpace(tokens.SpaceMD),
-		buttons,
-		progress,
-		note,
-		widgets.VSpace(tokens.SpaceLG),
-		container.NewHBox(skip),
+	return s.layout()
+}
+
+// layout arranges the screen. The actions sit under the explanation and
+// the status area is reserved below them, so nothing jumps around when
+// progress appears.
+func (s *setupScreen) layout() fyne.CanvasObject {
+	heading := widgets.Heading("Set up packwiz")
+
+	intro := widgets.Note("Packwiz Studio does not manage packs itself. It " +
+		"drives packwiz, the command line tool that owns your pack's files, " +
+		"and packwiz is not on your PATH yet.")
+
+	actions := container.NewVBox(
+		container.NewHBox(s.primary, s.secondary),
+		s.detail,
 	)
 
-	return widgets.Inset(tokens.SpaceXXL, tokens.SpaceXL, body)
+	statusArea := container.NewVBox(
+		s.progress,
+		s.spinner,
+		s.status,
+	)
+
+	body := container.NewVBox(
+		heading,
+		intro,
+		widgets.VSpace(tokens.SpaceLG),
+		actions,
+		widgets.VSpace(tokens.SpaceMD),
+		widgets.Hairline(),
+		widgets.VSpace(tokens.SpaceMD),
+		statusArea,
+	)
+
+	return container.NewBorder(
+		nil,
+		widgets.Inset(tokens.SpaceXXL, tokens.SpaceMD, container.NewHBox(s.skip)),
+		nil, nil,
+		widgets.Inset(tokens.SpaceXXL, tokens.SpaceXL, body),
+	)
 }
 
-// runInstall downloads packwiz off the main goroutine, reporting progress
-// back onto it.
-func (w *Window) runInstall(progress *widget.ProgressBar, note *canvas.Text, setBusy func(bool)) {
-	installer := &packwiz.Installer{}
-
-	loc, err := installer.Install(context.Background(), func(done, total int64) {
-		fyne.Do(func() {
-			if total > 0 {
-				progress.SetValue(float64(done) / float64(total))
-				note.Text = fmt.Sprintf("Downloading %s of %s", megabytes(done), megabytes(total))
-			} else {
-				note.Text = "Downloading " + megabytes(done)
-			}
-			note.Refresh()
-		})
-	})
+// describeRoute works out how packwiz can be obtained here and says so on
+// the primary action, so the button never promises something it cannot do.
+func (s *setupScreen) describeRoute() {
+	method, err := packwiz.Plan(context.Background(), nil)
 
 	fyne.Do(func() {
-		setBusy(false)
-		progress.Hide()
+		switch {
+		case err != nil:
+			s.primary.Disable()
+			s.detail.SetText(err.Error())
 
-		if err != nil {
-			note.Text = err.Error()
-			note.Color = tokens.ColorError
-			note.Refresh()
-			return
-		}
+		case method == packwiz.MethodDownload:
+			s.primary.SetText("Download packwiz")
+			s.primary.Enable()
+			s.detail.SetText("Downloads the prebuilt binary from packwiz's " +
+				"latest build, into this app's own folder. Nothing else on " +
+				"your system is touched.")
 
-		if err := w.sess.SetPackwiz(loc); err != nil {
-			dialog.ShowError(err, w.win)
-			return
+		default:
+			s.primary.SetText("Build packwiz")
+			s.primary.Enable()
+			s.detail.SetText("packwiz publishes no prebuilt binary for this " +
+				"architecture, so it will be compiled from source with Go. " +
+				"That takes a minute and produces a native binary.")
 		}
-		w.Refresh()
 	})
 }
 
-// browseForBinary lets the user point at a packwiz they already have. The
-// binary is verified before the path is stored, so a wrong pick fails
-// here rather than at the first command.
-func (w *Window) browseForBinary(note *canvas.Text) {
-	open := dialog.NewFileOpen(func(rc fyne.URIReadCloser, err error) {
-		if err != nil || rc == nil {
-			return
-		}
-		path := rc.URI().Path()
-		rc.Close()
+// install obtains packwiz and reports progress.
+func (s *setupScreen) install() {
+	s.setBusy(true)
+	s.statusText("Working. The output panel has the detail.", widgets.StateNeutral)
 
-		go func() {
-			loc, err := packwiz.Verify(context.Background(), path)
-			fyne.Do(func() {
-				if err != nil {
-					note.Text = err.Error()
-					note.Color = tokens.ColorError
-					note.Show()
-					note.Refresh()
-					return
-				}
-				if err := w.sess.SetPackwiz(loc); err != nil {
-					dialog.ShowError(err, w.win)
-					return
-				}
-				w.Refresh()
-			})
-		}()
-	}, w.win)
+	// A source build reports no percentage, so an indeterminate bar runs
+	// until a download reports a size or the work finishes.
+	s.spinner.Show()
+	s.spinner.Start()
 
-	if dir, err := storage.ListerForURI(storage.NewFileURI(defaultBrowseDir())); err == nil {
-		open.SetLocation(dir)
+	installer := &packwiz.Installer{
+		Runner: s.win.sess.Runner,
+		Bus:    s.win.sess.Bus,
 	}
-	open.Show()
+
+	go func() {
+		loc, err := installer.Install(context.Background(), func(done, total int64) {
+			fyne.Do(func() { s.showProgress(done, total) })
+		})
+		fyne.Do(func() { s.finish(loc, err) })
+	}()
+}
+
+// showProgress switches from the indeterminate bar to a real one once a
+// download reports its size.
+func (s *setupScreen) showProgress(done, total int64) {
+	if total <= 0 {
+		s.statusText("Downloaded "+megabytes(done), widgets.StateNeutral)
+		return
+	}
+
+	s.spinner.Stop()
+	s.spinner.Hide()
+	s.progress.Show()
+	s.progress.SetValue(float64(done) / float64(total))
+
+	s.statusText(fmt.Sprintf("Downloaded %s of %s", megabytes(done), megabytes(total)),
+		widgets.StateNeutral)
 }
 
 // megabytes renders a byte count for a progress line.

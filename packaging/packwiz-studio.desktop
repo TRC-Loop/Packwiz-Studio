@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Packwiz Studio
+GenericName=Modpack Editor
+Comment=Author, version and release Minecraft modpacks
+Exec=packwiz-studio
+Icon=packwiz-studio
+Terminal=false
+Categories=Development;Utility;
+Keywords=minecraft;modpack;packwiz;modrinth;
+StartupWMClass=Packwiz Studio

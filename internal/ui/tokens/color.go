@@ -36,8 +36,14 @@ var (
 	// ColorStrong is the emphasis tier: headings and error text.
 	ColorStrong = gray(0xF0)
 
-	// ColorFocus is the keyboard focus ring.
-	ColorFocus = gray(0xC8)
+	// ColorFocus marks the focused control and the highlighted row of an
+	// open dropdown or menu.
+	//
+	// It has to be a dark tone, not a bright one. Fyne fills the
+	// highlighted item of a Select popup and a menu with this colour and
+	// draws the label on top in the ordinary foreground, so a light value
+	// here puts light text on a light bar.
+	ColorFocus = gray(0x4A, 0x4A, 0x52)
 	// ColorScrim dims the window behind a modal dialog.
 	ColorScrim = color.NRGBA{R: 0, G: 0, B: 0, A: 0x99}
 	// ColorScrollBar is the scrollbar thumb.

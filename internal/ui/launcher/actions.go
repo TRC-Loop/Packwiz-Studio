@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
+	"github.com/TRC-Loop/Packwiz-Studio/internal/git"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
@@ -20,14 +21,22 @@ import (
 func (w *Window) actionColumn() []fyne.CanvasObject {
 	newPack := widget.NewButtonWithIcon("New pack", fynetheme.ContentAddIcon(), w.ShowNewPack)
 	openPack := widget.NewButtonWithIcon("Open pack", fynetheme.FolderOpenIcon(), w.ShowOpenPack)
+	clone := widget.NewButtonWithIcon("Clone a pack", fynetheme.DownloadIcon(), w.ShowClone)
 	settings := widget.NewButtonWithIcon("Settings", fynetheme.SettingsIcon(), w.ShowSettings)
 
 	if !w.sess.HasPackwiz() {
 		newPack.Disable()
 		openPack.Disable()
+		clone.Disable()
+	}
+	// Cloning needs git, which is separate from the git integration
+	// setting: that setting governs what the app does inside a pack's
+	// repository, not whether it can fetch one in the first place.
+	if !git.Available() {
+		clone.Disable()
 	}
 
-	column := []fyne.CanvasObject{newPack, openPack, settings}
+	column := []fyne.CanvasObject{newPack, openPack, clone, settings}
 	if !w.sess.HasPackwiz() && w.setupDismissed {
 		column = append(column,
 			widgets.VSpace(tokens.SpaceMD),

@@ -1,9 +1,7 @@
 package packwiz
 
 import (
-	"archive/tar"
 	"archive/zip"
-	"compress/gzip"
 	"errors"
 	"io"
 	"os"
@@ -12,24 +10,17 @@ import (
 	"strings"
 )
 
-// errNoBinary reports an archive that did not contain a packwiz binary.
-var errNoBinary = errors.New("the downloaded archive contains no packwiz binary")
+// errNoBinary reports an archive with no packwiz binary in it.
+var errNoBinary = errors.New("the downloaded build contains no packwiz binary")
 
 // maxBinarySize caps what will be written to disk, so a malformed or
 // hostile archive cannot fill the user's disk.
 const maxBinarySize = 200 << 20 // 200 MB
 
-// extractBinary pulls the packwiz executable out of archive and writes it
-// to dest. Only the binary is extracted, because release archives also
-// carry a licence and a readme that the app has no use for.
-func extractBinary(archive, assetName, dest string) error {
-	if strings.HasSuffix(strings.ToLower(assetName), ".zip") {
-		return extractZip(archive, dest)
-	}
-	return extractTarGz(archive, dest)
-}
-
-func extractZip(archive, dest string) error {
+// extractBinary pulls the packwiz executable out of an artifact zip and
+// writes it to dest. Only the binary is taken: artifacts also carry a
+// licence and a readme the app has no use for.
+func extractBinary(archive, dest string) error {
 	zr, err := zip.OpenReader(archive)
 	if err != nil {
 		return err
@@ -37,9 +28,10 @@ func extractZip(archive, dest string) error {
 	defer zr.Close()
 
 	for _, f := range zr.File {
-		if !isBinaryEntry(f.Name) {
+		if f.FileInfo().IsDir() || !isBinaryEntry(f.Name) {
 			continue
 		}
+
 		rc, err := f.Open()
 		if err != nil {
 			return err
@@ -51,39 +43,10 @@ func extractZip(archive, dest string) error {
 	return errNoBinary
 }
 
-func extractTarGz(archive, dest string) error {
-	f, err := os.Open(archive)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	gz, err := gzip.NewReader(f)
-	if err != nil {
-		return err
-	}
-	defer gz.Close()
-
-	tr := tar.NewReader(gz)
-	for {
-		hdr, err := tr.Next()
-		if errors.Is(err, io.EOF) {
-			return errNoBinary
-		}
-		if err != nil {
-			return err
-		}
-		if hdr.Typeflag != tar.TypeReg || !isBinaryEntry(hdr.Name) {
-			continue
-		}
-		return writeBinary(tr, dest)
-	}
-}
-
-// isBinaryEntry matches the packwiz executable inside an archive. Entry
-// names are compared on their base only: an archive may nest the binary
-// in a versioned folder, and a name with a path traversal in it is
-// rejected outright.
+// isBinaryEntry matches the packwiz executable inside an archive.
+//
+// Only the base name is compared: an archive may nest the binary in a
+// folder. A name containing a path traversal is rejected outright.
 func isBinaryEntry(name string) bool {
 	if strings.Contains(name, "..") {
 		return false

@@ -66,7 +66,8 @@ func (w *Window) Export() {
 	)
 
 	d := dialog.NewCustomConfirm("Export Modrinth pack", "Export", "Cancel",
-		widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body),
+		widgets.Scrollable(tokens.FormWidth, tokens.ExportHeight,
+			widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
 		func(export bool) {
 			if !export {
 				return

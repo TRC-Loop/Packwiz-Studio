@@ -15,8 +15,11 @@ import (
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
 )
 
-// showSettings opens the app settings. These are app wide rather than
-// per pack, so they live in a dialog reachable from any window.
+// ShowSettings opens the app settings.
+//
+// These are app wide. Anything that belongs to one pack, such as its
+// export folder or its remote, is not here: it is read from the pack or
+// kept in that pack's own preferences.
 func (w *Window) ShowSettings() {
 	cfg := w.sess.Cfg.Get()
 
@@ -38,48 +41,37 @@ func (w *Window) ShowSettings() {
 		open.Show()
 	})
 
-	giteaURL := widget.NewEntry()
-	giteaURL.SetText(cfg.GiteaBaseURL)
-	giteaURL.SetPlaceHolder("https://git.example.com")
-
-	useKeyring := widget.NewCheck("Store release tokens in the system keyring", nil)
-	useKeyring.SetChecked(cfg.UseKeyring)
-
 	gitEnabled := widget.NewCheck("Enable git and releases", nil)
 	gitEnabled.SetChecked(cfg.GitEnabled)
 
 	form := container.NewVBox(
 		widgets.SubHeading("packwiz"),
 		container.NewBorder(nil, nil, nil, browse, binPath),
-		widgets.Dim("Where the packwiz binary lives."),
+		widgets.Note("Where the packwiz binary lives. Leave it empty to use "+
+			"whichever packwiz is on your PATH."),
 
 		widgets.VSpace(tokens.SpaceLG),
 		widgets.SubHeading("Git"),
 		gitEnabled,
-		widgets.Dim("Turn this off to keep the app out of your repository. The git\n"+
-			"and releases sections disappear, and no git command is ever run."),
+		widgets.Note("Turn this off to keep the app out of your repository. "+
+			"The git and releases sections disappear and no git command is "+
+			"ever run, so you can manage the repo with another client."),
 
 		widgets.VSpace(tokens.SpaceLG),
 		widgets.SubHeading("Releases"),
-		useKeyring,
-		widgets.Dim("Tokens are never written to the config file."),
-		widgets.VSpace(tokens.SpaceSM),
-		widgets.Muted("Self hosted Gitea or Forgejo API base"),
-		giteaURL,
-		widgets.Dim("Only needed when your remote host is not a public domain\n"+
-			"the app recognises."),
+		widgets.Note("API tokens are stored in the system keyring, one per "+
+			"host, and are never written to the config file. Clear a stored "+
+			"token from a pack window under Release."),
 	)
 
 	d := dialog.NewCustomConfirm("Settings", "Save", "Cancel",
-		container.NewVScroll(widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, form)),
+		widgets.Scrollable(tokens.SettingsWidth, tokens.SettingsHeight, form),
 		func(save bool) {
 			if !save {
 				return
 			}
 			w.applySettings(settingsInput{
 				packwizPath: binPath.Text,
-				giteaURL:    giteaURL.Text,
-				useKeyring:  useKeyring.Checked,
 				gitEnabled:  gitEnabled.Checked,
 			})
 		}, w.win)
@@ -91,8 +83,6 @@ func (w *Window) ShowSettings() {
 // settingsInput is what the settings dialog collected.
 type settingsInput struct {
 	packwizPath string
-	giteaURL    string
-	useKeyring  bool
 	gitEnabled  bool
 }
 
@@ -101,8 +91,6 @@ type settingsInput struct {
 func (w *Window) applySettings(in settingsInput) {
 	err := w.sess.Cfg.Update(func(c *config.Config) {
 		c.PackwizPath = in.packwizPath
-		c.GiteaBaseURL = in.giteaURL
-		c.UseKeyring = in.useKeyring
 		c.GitEnabled = in.gitEnabled
 	})
 	if err != nil {

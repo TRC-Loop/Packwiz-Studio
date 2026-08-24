@@ -1,0 +1,44 @@
+# Package definition for the Linux deb and rpm, built by nfpm.
+#
+# The binary and the desktop entry are installed under /usr, so the app
+# appears in the application menu like any distribution package.
+
+name: packwiz-studio
+arch: amd64
+platform: linux
+version: ${VERSION}
+section: utils
+priority: optional
+maintainer: Arne K. <arne@stellar-foundry.com>
+description: |
+  A desktop GUI for authoring, versioning and releasing Minecraft modpacks.
+  Packwiz Studio drives the packwiz command line tool and publishes to
+  Modrinth.
+vendor: Stellar Foundry
+homepage: https://github.com/TRC-Loop/Packwiz-Studio
+license: GPL-3.0
+
+contents:
+  - src: ./packwiz-studio-linux-amd64
+    dst: /usr/bin/packwiz-studio
+    file_info:
+      mode: 0755
+
+  - src: ./packaging/packwiz-studio.desktop
+    dst: /usr/share/applications/packwiz-studio.desktop
+
+  - src: ./packaging/icon.png
+    dst: /usr/share/icons/hicolor/512x512/apps/packwiz-studio.png
+
+# packwiz is not a hard dependency: the app can install it itself, or be
+# pointed at an existing binary. git is likewise optional, since the git
+# integration can be turned off entirely.
+recommends:
+  - git
+
+deb:
+  fields:
+    Bugs: https://github.com/TRC-Loop/Packwiz-Studio/issues
+
+rpm:
+  group: Applications/System
