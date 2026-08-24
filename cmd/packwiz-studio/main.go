@@ -10,7 +10,6 @@ import (
 	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/launcher"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/theme"
 )
 
@@ -36,9 +35,7 @@ func main() {
 	}
 
 	win := a.NewWindow(appName)
-	l := launcher.New(sess, win, appName)
-	l.SetOnOpenPack(func(dir string) { openPack(l, dir) })
-	l.Refresh()
+	newShell(sess, win).showLauncher()
 
 	win.ShowAndRun()
 }

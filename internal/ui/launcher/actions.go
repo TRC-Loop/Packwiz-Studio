@@ -18,9 +18,9 @@ import (
 // packwiz, so they are disabled until a binary is available; Settings
 // stays live, because it is where the path gets fixed.
 func (w *Window) actionColumn() []fyne.CanvasObject {
-	newPack := widget.NewButtonWithIcon("New pack", fynetheme.ContentAddIcon(), w.showNewPack)
-	openPack := widget.NewButtonWithIcon("Open pack", fynetheme.FolderOpenIcon(), w.showOpenPack)
-	settings := widget.NewButtonWithIcon("Settings", fynetheme.SettingsIcon(), w.showSettings)
+	newPack := widget.NewButtonWithIcon("New pack", fynetheme.ContentAddIcon(), w.ShowNewPack)
+	openPack := widget.NewButtonWithIcon("Open pack", fynetheme.FolderOpenIcon(), w.ShowOpenPack)
+	settings := widget.NewButtonWithIcon("Settings", fynetheme.SettingsIcon(), w.ShowSettings)
 
 	if !w.sess.HasPackwiz() {
 		newPack.Disable()
@@ -55,9 +55,9 @@ func (w *Window) forgetButton(p config.Pack) fyne.CanvasObject {
 	return container.NewCenter(btn)
 }
 
-// showOpenPack asks for a folder and checks it holds a pack before
+// ShowOpenPack asks for a folder and checks it holds a pack before
 // opening it, so a wrong pick is refused here rather than failing later.
-func (w *Window) showOpenPack() {
+func (w *Window) ShowOpenPack() {
 	open := dialog.NewFolderOpen(func(list fyne.ListableURI, err error) {
 		if err != nil || list == nil {
 			return

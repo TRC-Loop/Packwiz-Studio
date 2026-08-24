@@ -17,7 +17,7 @@ import (
 
 // showSettings opens the app settings. These are app wide rather than
 // per pack, so they live in a dialog reachable from any window.
-func (w *Window) showSettings() {
+func (w *Window) ShowSettings() {
 	cfg := w.sess.Cfg.Get()
 
 	binPath := widget.NewEntry()

@@ -31,7 +31,7 @@ type newPackForm struct {
 }
 
 // showNewPack collects everything `packwiz init` asks for and runs it.
-func (w *Window) showNewPack() {
+func (w *Window) ShowNewPack() {
 	f := &newPackForm{
 		dir:           widget.NewEntry(),
 		name:          widget.NewEntry(),
