@@ -123,12 +123,23 @@ func (a *filesActivity) selectFile(rel string) {
 			"Discard the unsaved changes to "+filepath.Base(a.selected)+"?",
 			func(discard bool) {
 				if discard {
-					a.open(rel)
+					a.openAndFocus(rel)
 				}
 			}, a.deps.win).Show()
 		return
 	}
+	a.openAndFocus(rel)
+}
+
+// openAndFocus opens a file and puts the caret in it, so a click on a
+// file is enough to start typing.
+//
+// Focus is only taken on an explicit selection. A reload also reopens the
+// file, and that must not pull the caret out of whatever the user is
+// doing elsewhere in the window.
+func (a *filesActivity) openAndFocus(rel string) {
 	a.open(rel)
+	a.editor.focus(a.deps.win.Canvas())
 }
 
 // open loads a file into the editor.

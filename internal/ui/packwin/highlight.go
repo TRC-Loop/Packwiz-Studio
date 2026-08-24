@@ -1,72 +1,43 @@
 package packwin
 
 import (
-	"image/color"
-	"strings"
-
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/widget"
-
 	"github.com/PalisadeMC/Packwiz-Studio/internal/tomlhl"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
-// highlight turns a file into styled grid rows.
-func highlight(content string) []widget.TextGridRow {
-	lines := strings.Split(content, "\n")
+// tomlSpans colours one line of TOML for the editor.
+func tomlSpans(line string) []widgets.Span {
+	toks := tomlhl.Line(line)
 
-	rows := make([]widget.TextGridRow, 0, len(lines))
-	for _, line := range lines {
-		var cells []widget.TextGridCell
-
-		for _, tok := range tomlhl.Line(line) {
-			style := tokenStyle(tok.Kind)
-			for _, r := range tok.Text {
-				cells = append(cells, widget.TextGridCell{Rune: r, Style: style})
-			}
-		}
-		rows = append(rows, widget.TextGridRow{Cells: cells})
+	out := make([]widgets.Span, 0, len(toks))
+	for _, tok := range toks {
+		out = append(out, span(tok))
 	}
-	return rows
+	return out
 }
 
-// tokenStyle maps a token kind onto a shade and weight.
-//
-// Syntax highlighting stays grayscale: the status colours mean state, and
-// spending them on syntax would dilute that. Four shades plus bold and
-// italic separate the kinds well enough for a file this size.
-func tokenStyle(kind tomlhl.Kind) widget.TextGridStyle {
-	switch kind {
+// span maps a token onto its colour and weight.
+func span(tok tomlhl.Token) widgets.Span {
+	s := widgets.Span{Text: tok.Text, Color: tokens.SyntaxText}
+
+	switch tok.Kind {
 	case tomlhl.KindComment:
-		return &widget.CustomTextGridStyle{
-			FGColor:   tokens.ColorDim,
-			TextStyle: fyne.TextStyle{Italic: true, Monospace: true},
-		}
+		s.Color = tokens.SyntaxComment
+		s.Italic = true
 	case tomlhl.KindTable:
-		return &widget.CustomTextGridStyle{
-			FGColor:   tokens.ColorStrong,
-			TextStyle: fyne.TextStyle{Bold: true, Monospace: true},
-		}
+		s.Color = tokens.SyntaxTable
+		s.Bold = true
 	case tomlhl.KindKey:
-		return mono(tokens.ColorText)
+		s.Color = tokens.SyntaxKey
 	case tomlhl.KindString:
-		return mono(tokens.ColorMuted)
-	case tomlhl.KindNumber, tomlhl.KindBool:
-		return &widget.CustomTextGridStyle{
-			FGColor:   tokens.ColorMuted,
-			TextStyle: fyne.TextStyle{Bold: true, Monospace: true},
-		}
+		s.Color = tokens.SyntaxString
+	case tomlhl.KindNumber:
+		s.Color = tokens.SyntaxNumber
+	case tomlhl.KindBool:
+		s.Color = tokens.SyntaxBool
 	case tomlhl.KindPunct:
-		return mono(tokens.ColorDim)
-	default:
-		return mono(tokens.ColorText)
+		s.Color = tokens.SyntaxPunct
 	}
-}
-
-// mono is a plain monospace style in one colour.
-func mono(c color.Color) widget.TextGridStyle {
-	return &widget.CustomTextGridStyle{
-		FGColor:   c,
-		TextStyle: fyne.TextStyle{Monospace: true},
-	}
+	return s
 }
