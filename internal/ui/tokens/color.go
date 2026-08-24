@@ -5,8 +5,10 @@ package tokens
 
 import "image/color"
 
-// The palette is pure grayscale by design — no accent colour anywhere.
-// Levels are ordered from the window ground upward.
+// The chrome palette is pure grayscale — no accent colour in any
+// structural surface, control or text tier. Levels are ordered from the
+// window ground upward. Semantic status colours are the one exception
+// and live in the block below.
 var (
 	// ColorBG is the window ground and the main content area.
 	ColorBG = gray(0x1E)
@@ -42,7 +44,34 @@ var (
 	ColorScrollBar = color.NRGBA{R: 0x9A, G: 0x9A, B: 0x9A, A: 0x66}
 )
 
-// gray builds an opaque colour. Called with one argument it produces a
+// Semantic status colours. These are the only hues in the app: they mark
+// state, never decoration. Use them for error and warning text, git
+// clean/dirty state, and added/removed changelog entries — never as an
+// accent on a button, a selection or a heading. Each is chosen to stay
+// legible on ColorBG without glowing.
+var (
+	// ColorError marks a failed command or an invalid field.
+	ColorError = rgb(0xF1, 0x4C, 0x4C)
+	// ColorWarning marks a recoverable problem or an unsaved change.
+	ColorWarning = rgb(0xCC, 0xA7, 0x00)
+	// ColorSuccess marks a completed command or a clean worktree.
+	ColorSuccess = rgb(0x89, 0xD1, 0x85)
+	// ColorLink marks an external link, such as a mod's Modrinth page.
+	ColorLink = rgb(0x37, 0x94, 0xFF)
+
+	// ColorOnError, ColorOnWarning and ColorOnSuccess are text drawn on
+	// top of a filled status colour, picked for contrast against it.
+	ColorOnError   = ColorStrong
+	ColorOnWarning = ColorBG
+	ColorOnSuccess = ColorBG
+)
+
+// rgb builds an opaque colour from explicit channels.
+func rgb(r, g, b uint8) color.NRGBA {
+	return color.NRGBA{R: r, G: g, B: b, A: 0xFF}
+}
+
+// gray builds an opaque grey. Called with one argument it produces a
 // neutral grey; with three it allows the slight tint the charcoal ramp
 // uses to separate surface levels.
 func gray(v ...uint8) color.NRGBA {
