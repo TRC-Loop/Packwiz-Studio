@@ -30,7 +30,11 @@ func (w *Window) build() *fyne.Container {
 	)
 }
 
-// header names the pack and shows its logo.
+// header names the pack and shows its image.
+//
+// The whole title block opens the pack's properties. That is where a user
+// looks to rename a pack or give it an image, so it is made clickable
+// rather than living only in a menu.
 func (w *Window) header() fyne.CanvasObject {
 	bg := canvas.NewRectangle(tokens.ColorSurface)
 
@@ -39,8 +43,10 @@ func (w *Window) header() fyne.CanvasObject {
 		container.NewCenter(widgets.SubHeading(w.pack.Name)),
 	)
 
+	clickable := widgets.NewClickable(title, w.EditProperties)
+
 	line := container.NewBorder(nil, nil,
-		widgets.Inset(tokens.SpaceMD, tokens.SpaceSM, title), nil, nil)
+		widgets.Inset(tokens.SpaceSM, tokens.SpaceXS, clickable), nil, nil)
 
 	return container.NewStack(bg,
 		container.NewBorder(nil, widgets.Hairline(), nil, nil, line))

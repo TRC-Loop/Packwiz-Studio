@@ -39,7 +39,7 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 		Refresh:       w.RefreshIndex,
 		Export:        w.Export,
 		CheckUpdates:  w.CheckUpdates,
-		SetLogo:       w.SetLogo,
+		Properties:    w.EditProperties,
 		RevealInFiles: func() { s.reveal(w.Pack().Dir) },
 
 		AddMod: w.FocusBrowse,
@@ -52,10 +52,6 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 
 		About:          s.showAbout,
 		PackwizVersion: s.showPackwizVersion,
-	}
-
-	if w.HasLogo() {
-		a.RemoveLogo = w.RemoveLogo
 	}
 
 	// Git items are absent entirely when the integration is off, so the

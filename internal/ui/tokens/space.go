@@ -28,10 +28,11 @@ const (
 	// RowHeight is one entry in a list: mod, changed file, release.
 	RowHeight float32 = 24
 
-	// ActivityBarWidth is the icon rail on the far left.
-	ActivityBarWidth float32 = 44
-	// ActivityIconSlot is the square hit target of one rail icon.
-	ActivityIconSlot float32 = 40
+	// ActivityBarWidth is the icon rail on the far left. It is wide enough
+	// for a section's name to sit under its glyph.
+	ActivityBarWidth float32 = 72
+	// ActivityIconSlot is the height of one rail entry, glyph plus name.
+	ActivityIconSlot float32 = 52
 
 	// SidePanelWidth is the default width of the list pane.
 	SidePanelWidth float32 = 220
@@ -87,6 +88,9 @@ const (
 
 	// CloneHeight sizes the clone dialog.
 	CloneHeight float32 = 400
+
+	// PropertiesHeight sizes the pack properties dialog.
+	PropertiesHeight float32 = 480
 
 	// ReleaseWidth and ReleaseHeight size the release dialog, which holds
 	// a changelog field and so needs more room than a plain form.

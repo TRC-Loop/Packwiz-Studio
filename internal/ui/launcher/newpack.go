@@ -38,6 +38,11 @@ type newPackForm struct {
 
 	status *widget.Label
 
+	// logo is the image chosen for the pack, copied in after packwiz has
+	// created the folder. Empty means the pack starts without one.
+	logo      string
+	logoLabel *widget.Label
+
 	// games holds every Minecraft version once fetched, so toggling
 	// snapshots refilters without another request.
 	games []mcmeta.Version
@@ -64,12 +69,13 @@ func (w *Window) ShowNewPack() {
 // newForm builds the form's widgets.
 func newForm(w *Window) *newPackForm {
 	f := &newPackForm{
-		win:     w,
-		dir:     widget.NewEntry(),
-		name:    widget.NewEntry(),
-		author:  widget.NewEntry(),
-		version: widget.NewEntry(),
-		status:  widgets.Note(""),
+		win:       w,
+		dir:       widget.NewEntry(),
+		name:      widget.NewEntry(),
+		author:    widget.NewEntry(),
+		version:   widget.NewEntry(),
+		status:    widgets.Note(""),
+		logoLabel: widgets.Note(noLogoLabel),
 	}
 
 	f.dir.SetPlaceHolder("an empty folder for the pack")
@@ -110,6 +116,18 @@ func (w *Window) buildNewPack() fyne.CanvasObject {
 		widgets.Muted("Loader version"),
 		f.loaderVersion,
 		f.loaderManual,
+
+		widgets.VSpace(tokens.SpaceSM),
+		widgets.Muted("Pack image"),
+		container.NewBorder(nil, nil, nil,
+			container.NewHBox(
+				widget.NewButtonWithIcon("Choose", fynetheme.FileImageIcon(), f.pickLogo),
+				widget.NewButton("Clear", f.clearLogo),
+			),
+			f.logoLabel,
+		),
+		widgets.Note("Optional. Saved into the pack folder as icon.png, so it "+
+			"travels with the pack and can be attached to a release."),
 	)
 
 	create := widget.NewButtonWithIcon("Create pack", fynetheme.ConfirmIcon(),

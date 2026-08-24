@@ -11,9 +11,14 @@ import (
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
-// activityBar is the icon rail on the far left. It is icon only, matching
-// the locked layout, with a hover tooltip naming each activity since Fyne
-// provides none and the glyphs alone would not be discoverable.
+// activityBar is the icon rail on the far left.
+//
+// Each entry carries a small caption under its glyph rather than a hover
+// tooltip. Fyne has no tooltip, and a hand-rolled one has to be a popup,
+// which sits under the pointer and takes the hover for itself: the rail
+// entry then sees the pointer leave, hides the popup, receives the
+// pointer again, and flickers. A permanent caption cannot do that, and it
+// names every section without needing to be discovered.
 type activityBar struct {
 	buttons []*railButton
 	root    *fyne.Container
@@ -52,24 +57,19 @@ func (b *activityBar) setCurrent(id string) {
 	}
 }
 
-// railButton is one glyph in the rail.
+// railButton is one entry in the rail: a glyph over its name.
 type railButton struct {
 	widget.BaseWidget
 
 	activity Activity
 	onSelect func(id string)
 
-	tip    *widgets.Tooltip
 	active bool
 	hover  bool
 }
 
 func newRailButton(a Activity, onSelect func(id string)) *railButton {
-	b := &railButton{
-		activity: a,
-		onSelect: onSelect,
-		tip:      widgets.NewTooltip(a.Title()),
-	}
+	b := &railButton{activity: a, onSelect: onSelect}
 	b.ExtendBaseWidget(b)
 	return b
 }
@@ -92,14 +92,12 @@ func (b *railButton) Tapped(*fyne.PointEvent) {
 // MouseIn implements desktop.Hoverable.
 func (b *railButton) MouseIn(*desktop.MouseEvent) {
 	b.hover = true
-	b.tip.ShowRightOf(b, tokens.SpaceSM)
 	b.Refresh()
 }
 
 // MouseOut implements desktop.Hoverable.
 func (b *railButton) MouseOut() {
 	b.hover = false
-	b.tip.Hide()
 	b.Refresh()
 }
 
@@ -114,30 +112,44 @@ func (b *railButton) CreateRenderer() fyne.WidgetRenderer {
 	icon := canvas.NewImageFromResource(b.activity.Icon())
 	icon.FillMode = canvas.ImageFillContain
 
-	marker := canvas.NewRectangle(tokens.ColorText)
+	label := canvas.NewText(b.activity.Title(), tokens.ColorMuted)
+	label.TextSize = tokens.TextRailLabel
+	label.Alignment = fyne.TextAlignCenter
 
 	return &railRenderer{
 		owner:  b,
+		bg:     canvas.NewRectangle(tokens.ColorSurface),
+		marker: canvas.NewRectangle(tokens.ColorText),
 		icon:   icon,
-		marker: marker,
+		label:  label,
 	}
 }
 
-// railRenderer draws the glyph, a hover wash and an active marker down
-// the left edge.
+// railRenderer draws the glyph over its caption, with a hover wash and a
+// marker down the left edge for the open section.
 type railRenderer struct {
 	owner  *railButton
-	icon   *canvas.Image
+	bg     *canvas.Rectangle
 	marker *canvas.Rectangle
+	icon   *canvas.Image
+	label  *canvas.Text
 }
 
-// markerWidth is the thickness of the active activity's edge marker.
+// markerWidth is the thickness of the active section's edge marker.
 const markerWidth float32 = 2
 
 func (r *railRenderer) Layout(size fyne.Size) {
-	inset := (size.Width - tokens.IconActivity) / 2
+	r.bg.Resize(size)
+	r.bg.Move(fyne.NewPos(0, 0))
+
+	labelHeight := r.label.MinSize().Height
+	iconTop := (size.Height - labelHeight - tokens.IconActivity) / 2
+
 	r.icon.Resize(fyne.NewSize(tokens.IconActivity, tokens.IconActivity))
-	r.icon.Move(fyne.NewPos(inset, (size.Height-tokens.IconActivity)/2))
+	r.icon.Move(fyne.NewPos((size.Width-tokens.IconActivity)/2, iconTop))
+
+	r.label.Resize(fyne.NewSize(size.Width, labelHeight))
+	r.label.Move(fyne.NewPos(0, iconTop+tokens.IconActivity+tokens.SpaceXS))
 
 	r.marker.Resize(fyne.NewSize(markerWidth, size.Height))
 	r.marker.Move(fyne.NewPos(0, 0))
@@ -148,30 +160,37 @@ func (r *railRenderer) MinSize() fyne.Size {
 }
 
 func (r *railRenderer) Refresh() {
-	if r.owner.active {
-		r.marker.Show()
+	switch {
+	case r.owner.active:
+		r.bg.FillColor = tokens.ColorSelected
+		r.label.Color = tokens.ColorText
 		r.icon.Translucency = 0
-	} else {
+		r.marker.Show()
+	case r.owner.hover:
+		r.bg.FillColor = tokens.ColorHover
+		r.label.Color = tokens.ColorText
+		r.icon.Translucency = 0
 		r.marker.Hide()
-		// A dimmed glyph reads as inactive without needing a second
-		// colour, since Fyne icons are drawn in the foreground colour.
+	default:
+		r.bg.FillColor = tokens.ColorSurface
+		r.label.Color = tokens.ColorMuted
+		// Fyne icons are drawn in one colour, so fading the glyph is how
+		// an inactive entry recedes without a second icon set.
 		r.icon.Translucency = inactiveGlyph
-		if r.owner.hover {
-			r.icon.Translucency = hoverGlyph
-		}
+		r.marker.Hide()
 	}
+
+	r.bg.Refresh()
 	r.marker.Refresh()
 	r.icon.Refresh()
+	r.label.Refresh()
 }
 
-// Glyph translucency for the rail's three states.
-const (
-	inactiveGlyph = 0.45
-	hoverGlyph    = 0.15
-)
+// inactiveGlyph is how far an unselected glyph fades.
+const inactiveGlyph = 0.35
 
 func (r *railRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{r.marker, r.icon}
+	return []fyne.CanvasObject{r.bg, r.marker, r.icon, r.label}
 }
 
 func (r *railRenderer) Destroy() {}

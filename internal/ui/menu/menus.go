@@ -40,9 +40,7 @@ func packMenu(a Actions) *fyne.Menu {
 		withShortcut(item("Export", a.Export), fyne.KeyE, modPrimary),
 		item("Check for updates", a.CheckUpdates),
 		separator(),
-		item("Set logo", a.SetLogo),
-		item("Remove logo", a.RemoveLogo),
-		separator(),
+		withShortcut(item("Properties", a.Properties), fyne.KeyI, modPrimary),
 		item("Reveal in file manager", a.RevealInFiles),
 	)
 	return fyne.NewMenu("Pack", items...)

@@ -16,8 +16,9 @@ import (
 // it arrives. Mod icons come from Modrinth's CDN, so every card needs
 // one of these.
 //
-// Loads are cached per URL for the life of the process: scrolling a
-// result list back and forth would otherwise refetch every icon.
+// Loads are cached per URL for the life of the process, failures
+// included: scrolling a result list back and forth would otherwise
+// refetch every icon, and retry every one that cannot be read.
 func RemoteImage(url string, size float32) fyne.CanvasObject {
 	box := fyne.NewSize(size, size)
 	slot := container.NewStack(placeholder(box))
@@ -26,8 +27,10 @@ func RemoteImage(url string, size float32) fyne.CanvasObject {
 		return slot
 	}
 
-	if res := cachedImage(url); res != nil {
-		slot.Add(image(res, box))
+	if res, known := cachedImage(url); known {
+		if res != nil {
+			slot.Add(fitted(res, box))
+		}
 		return slot
 	}
 
@@ -37,7 +40,7 @@ func RemoteImage(url string, size float32) fyne.CanvasObject {
 			return
 		}
 		fyne.Do(func() {
-			slot.Add(image(res, box))
+			slot.Add(fitted(res, box))
 			slot.Refresh()
 		})
 	}()
@@ -45,15 +48,17 @@ func RemoteImage(url string, size float32) fyne.CanvasObject {
 	return slot
 }
 
-// image builds a contained image at a fixed size.
-func image(res fyne.Resource, box fyne.Size) *canvas.Image {
+// fitted builds a contained image at a fixed size. It is not called
+// "image" because this package also imports the image package.
+func fitted(res fyne.Resource, box fyne.Size) *canvas.Image {
 	img := canvas.NewImageFromResource(res)
 	img.FillMode = canvas.ImageFillContain
 	img.SetMinSize(box)
 	return img
 }
 
-// imageCache holds decoded icons by URL.
+// imageCache holds decoded icons by URL. A nil entry records a URL that
+// could not be read, so it is not attempted again.
 var imageCache struct {
 	sync.Mutex
 	entries map[string]fyne.Resource
@@ -63,10 +68,13 @@ var imageCache struct {
 // this covers a good deal of browsing before anything is dropped.
 const maxCachedImages = 400
 
-func cachedImage(url string) fyne.Resource {
+// cachedImage reports a cached entry and whether the URL is known at all.
+func cachedImage(url string) (fyne.Resource, bool) {
 	imageCache.Lock()
 	defer imageCache.Unlock()
-	return imageCache.entries[url]
+
+	res, known := imageCache.entries[url]
+	return res, known
 }
 
 func storeImage(url string, res fyne.Resource) {
@@ -93,8 +101,9 @@ var imageClient = &http.Client{Timeout: 15 * time.Second}
 // file into memory.
 const maxImageBytes = 4 << 20
 
-// fetchImage downloads an icon. A failure is silent: the placeholder
-// stays, which is a better outcome than an error dialog per missing icon.
+// fetchImage downloads and decodes an icon. A failure is silent: the
+// placeholder stays, which is a better outcome than an error dialog per
+// missing icon.
 func fetchImage(url string) fyne.Resource {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
@@ -111,6 +120,7 @@ func fetchImage(url string) fyne.Resource {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		storeImage(url, nil)
 		return nil
 	}
 
@@ -119,7 +129,12 @@ func fetchImage(url string) fyne.Resource {
 		return nil
 	}
 
-	res := fyne.NewStaticResource(url, data)
+	res, ok := decodeImage(url, data)
+	if !ok {
+		storeImage(url, nil)
+		return nil
+	}
+
 	storeImage(url, res)
 	return res
 }

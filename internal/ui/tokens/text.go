@@ -12,6 +12,10 @@ const (
 	// a pack window's pack name.
 	TextHeading float32 = 20
 
+	// TextRailLabel names a section under its glyph in the activity rail.
+	// It is below the caption step because the rail is narrow.
+	TextRailLabel float32 = 10
+
 	// LineSpacing is the gap between wrapped lines of text.
 	LineSpacing float32 = 4
 )

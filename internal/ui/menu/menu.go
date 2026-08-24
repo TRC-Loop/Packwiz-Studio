@@ -24,8 +24,7 @@ type Actions struct {
 	Refresh       func()
 	Export        func()
 	CheckUpdates  func()
-	SetLogo       func()
-	RemoveLogo    func()
+	Properties    func()
 	RevealInFiles func()
 
 	// Mods.

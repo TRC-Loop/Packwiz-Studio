@@ -36,6 +36,16 @@ func (w *Window) createPack(f *newPackForm) {
 				dialog.ShowError(initFailed(res.Output()), w.win)
 				return
 			}
+
+			// The image is copied in after init, since the pack folder
+			// only exists once packwiz has written it. A failure here is
+			// reported without discarding the pack that was created.
+			if f.logo != "" {
+				if err := pack.SetIcon(opts.Dir, f.logo); err != nil {
+					dialog.ShowError(err, w.win)
+				}
+			}
+
 			w.finishNewPack(opts.Dir)
 		})
 	}()
