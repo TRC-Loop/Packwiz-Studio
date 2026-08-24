@@ -72,6 +72,7 @@ func New(sess *studio.Session, win fyne.Window, p pack.Pack, onClose func()) *Wi
 		pack:          p,
 		onPackChanged: w.Reload,
 		onMenuChanged: w.rebuildMenu,
+		addActions:    w.addMenu,
 	}
 
 	w.items = w.activities()

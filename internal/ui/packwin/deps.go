@@ -16,6 +16,7 @@ import (
 	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/studio"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // activityDeps is what every activity needs: the session, the window to
@@ -36,6 +37,10 @@ type activityDeps struct {
 	// after the menu is installed.
 	onMenuChanged func()
 
+	// addActions builds the controls for adding a mod. The window owns
+	// them, since two of the three open a dialog on it.
+	addActions func() fyne.CanvasObject
+
 	// busy guards against a second command starting while one is still
 	// running. packwiz rewrites the index, and two writers would leave it
 	// inconsistent.
@@ -52,6 +57,15 @@ func (d *activityDeps) menuChanged() {
 	if d.onMenuChanged != nil {
 		d.onMenuChanged()
 	}
+}
+
+// addMenu builds the ways to add a mod, or nothing when the window has
+// not supplied them.
+func (d *activityDeps) addMenu() fyne.CanvasObject {
+	if d.addActions == nil {
+		return widgets.Note("")
+	}
+	return d.addActions()
 }
 
 // prefs returns this pack's remembered choices.

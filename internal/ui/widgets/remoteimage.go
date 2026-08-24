@@ -23,15 +23,19 @@ func RemoteImage(url string, size float32) fyne.CanvasObject {
 	box := fyne.NewSize(size, size)
 	slot := container.NewStack(placeholder(box))
 
+	// The slot is pinned to a square, so a row layout cannot stretch the
+	// icon to the row's height.
+	pinned := FixedSquare(size, slot)
+
 	if url == "" {
-		return slot
+		return pinned
 	}
 
 	if res, known := cachedImage(url); known {
 		if res != nil {
 			slot.Add(fitted(res, box))
 		}
-		return slot
+		return pinned
 	}
 
 	go func() {
@@ -45,7 +49,7 @@ func RemoteImage(url string, size float32) fyne.CanvasObject {
 		})
 	}()
 
-	return slot
+	return pinned
 }
 
 // fitted builds a contained image at a fixed size. It is not called

@@ -26,6 +26,34 @@ func (c *Client) AddModrinth(ctx context.Context, ref string) (cmdrun.Result, er
 	return c.run(ctx, "modrinth", "add", ref)
 }
 
+// AddURL adds a file from a direct download link, for a mod that is not
+// on a host packwiz knows.
+//
+// packwiz cannot check such a file for updates or dependencies, so it
+// refuses a URL it recognises as belonging to a supported host unless
+// forced. The app does not force it: being sent to the proper command is
+// the better outcome.
+func (c *Client) AddURL(ctx context.Context, name, url string) (cmdrun.Result, error) {
+	return c.run(ctx, "url", "add", name, url)
+}
+
+// AddGitHub adds a mod from a GitHub repository's releases. The ref is a
+// repository URL or an owner/name slug.
+//
+// The branch and pattern are optional: a pattern picks one asset when a
+// release carries several, which is common for mods shipping a separate
+// sources or dev jar.
+func (c *Client) AddGitHub(ctx context.Context, ref, branch, pattern string) (cmdrun.Result, error) {
+	args := []string{"github", "add", ref}
+	if branch != "" {
+		args = append(args, "--branch", branch)
+	}
+	if pattern != "" {
+		args = append(args, "--regex", pattern)
+	}
+	return c.run(ctx, args...)
+}
+
 // Remove deletes a mod's metadata file and refreshes the index. The name
 // is the mod's metadata name as packwiz knows it.
 func (c *Client) Remove(ctx context.Context, name string) (cmdrun.Result, error) {

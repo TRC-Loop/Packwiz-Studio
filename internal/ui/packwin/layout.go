@@ -38,10 +38,11 @@ func (w *Window) build() *fyne.Container {
 func (w *Window) header() fyne.CanvasObject {
 	bg := canvas.NewRectangle(tokens.ColorSurface)
 
-	title := container.NewHBox(
-		widgets.PackLogo(pack.IconPath(w.pack.Dir), tokens.IconPackLogo),
-		container.NewCenter(widgets.SubHeading(w.pack.Name)),
-	)
+	title := container.NewHBox()
+	if logo := widgets.PackLogo(pack.IconPath(w.pack.Dir), tokens.IconPackLogo); logo != nil {
+		title.Add(logo)
+	}
+	title.Add(container.NewCenter(widgets.SubHeading(w.pack.Name)))
 
 	clickable := widgets.NewClickable(title, w.EditProperties)
 

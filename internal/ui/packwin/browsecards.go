@@ -82,12 +82,12 @@ func (a *browseActivity) card(h modrinth.Hit) fyne.CanvasObject {
 
 // listRow is one compact entry: small icon, title, description on a line.
 func (a *browseActivity) listRow(h modrinth.Hit) fyne.CanvasObject {
-	title := widgets.Body(h.Title)
-	title.Truncation = fyne.TextTruncateEllipsis
-
-	desc := widgets.Dim(h.Description)
-
-	text := container.NewVBox(title, desc)
+	// Both lines are canvas text so they share a left edge, since a Label
+	// would carry the theme's inner padding and sit indented.
+	text := container.NewVBox(
+		widgets.Strong(h.Title),
+		widgets.Dim(h.Description),
+	)
 
 	row := container.NewBorder(nil, nil,
 		widgets.RemoteImage(h.IconURL, tokens.IconInline*2), a.cardAction(h),

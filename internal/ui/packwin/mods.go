@@ -78,7 +78,7 @@ func (a *modsActivity) Reload() {
 		a.selected = ""
 	}
 	if a.selected == "" {
-		a.showMessage(a.summary())
+		a.showEmpty()
 		return
 	}
 	a.showDetail(*a.find(a.selected))
@@ -172,22 +172,10 @@ func (a *modsActivity) find(path string) *pack.Mod {
 	return nil
 }
 
-// summary is what the detail pane shows with nothing selected.
-func (a *modsActivity) summary() string {
-	switch len(a.mods) {
-	case 0:
-		return "Add mods from the browser to get started."
-	case 1:
-		return "1 mod installed. Select it to see its details."
-	default:
-		return itoa(len(a.mods)) + " mods installed. Select one to see its details."
-	}
-}
-
 // showMessage puts a plain note in the detail pane.
 func (a *modsActivity) showMessage(text string) {
 	a.main.Objects = []fyne.CanvasObject{
-		widgets.Inset(tokens.SpaceXL, tokens.SpaceLG, widgets.Muted(text)),
+		widgets.Inset(tokens.SpaceXL, tokens.SpaceLG, widgets.Note(text)),
 	}
 	a.main.Refresh()
 }

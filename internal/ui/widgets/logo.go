@@ -8,27 +8,37 @@ import (
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 )
 
-// PackLogo renders a pack's icon.png at the given side length. A pack
-// without a logo gets a plain placeholder square rather than a stock
-// icon, so a list of packs stays visually quiet.
+// PackLogo renders a pack's image at the given side length, pinned square
+// so a row layout cannot stretch it.
+//
+// A pack with no image gets nothing at all. An empty placeholder square
+// in every row is just noise, and most packs have no image.
 func PackLogo(path string, size float32) fyne.CanvasObject {
-	box := fyne.NewSize(size, size)
-
 	if path == "" {
-		return placeholder(box)
+		return nil
 	}
+
+	box := fyne.NewSize(size, size)
 
 	img := canvas.NewImageFromFile(path)
 	img.FillMode = canvas.ImageFillContain
 	img.SetMinSize(box)
 
 	// A file that turns out not to be a decodable image renders as
-	// nothing, which would leave a hole in the row. The placeholder sits
-	// behind it so the slot is filled either way.
-	return container.NewStack(placeholder(box), img)
+	// nothing, so the placeholder sits behind it to keep the slot filled.
+	return FixedSquare(size, container.NewStack(placeholder(box), img))
 }
 
-// placeholder is the empty logo slot: a filled square with a hairline
+// PackLogoOrPlaceholder always renders a slot, for a screen that shows
+// what the image would be rather than a list of packs.
+func PackLogoOrPlaceholder(path string, size float32) fyne.CanvasObject {
+	if logo := PackLogo(path, size); logo != nil {
+		return logo
+	}
+	return FixedSquare(size, placeholder(fyne.NewSize(size, size)))
+}
+
+// placeholder is the empty image slot: a filled square with a hairline
 // border, matching the card radius.
 func placeholder(size fyne.Size) fyne.CanvasObject {
 	r := canvas.NewRectangle(tokens.ColorElevated)

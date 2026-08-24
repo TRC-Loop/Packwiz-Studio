@@ -14,7 +14,7 @@ description: |
   A desktop GUI for authoring, versioning and releasing Minecraft modpacks.
   Packwiz Studio drives the packwiz command line tool and publishes to
   Modrinth.
-vendor: Stellar Foundry
+vendor: Arne K.
 homepage: https://github.com/PalisadeMC/Packwiz-Studio
 license: GPL-3.0
 

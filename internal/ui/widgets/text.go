@@ -36,6 +36,16 @@ func Body(text string) *widget.Label {
 	return widget.NewLabel(text)
 }
 
+// Strong is primary single-line text drawn as canvas text rather than as
+// a Label.
+//
+// A Label carries the theme's inner padding, so a Label stacked above
+// canvas text sits indented from it. Rows that mix tiers use this for
+// their first line to keep every line on the same left edge.
+func Strong(text string) *canvas.Text {
+	return sized(text, tokens.ColorText, tokens.TextBody)
+}
+
 // Muted is secondary text at body size: a pack's Minecraft version, a
 // mod's category list.
 //

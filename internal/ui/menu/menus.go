@@ -48,7 +48,10 @@ func packMenu(a Actions) *fyne.Menu {
 
 func modsMenu(a Actions) *fyne.Menu {
 	items := compact(
-		withShortcut(item("Add mod", a.AddMod), fyne.KeyF, modPrimary),
+		withShortcut(item("Browse Modrinth", a.AddMod), fyne.KeyF, modPrimary),
+		item("Add from a URL", a.AddFromURL),
+		item("Add from GitHub", a.AddFromGit),
+		separator(),
 		item("Remove selected mod", a.RemoveMod),
 		separator(),
 		sideSubmenu(a),

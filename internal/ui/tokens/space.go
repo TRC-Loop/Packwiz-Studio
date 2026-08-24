@@ -83,14 +83,18 @@ const (
 	// row and button row, which scrolling content has to leave free.
 	DialogChrome float32 = 96
 
-	// ExportHeight sizes the export dialog.
-	ExportHeight float32 = 340
+	// ExportHeight sizes the export dialog, which also carries the side
+	// summary under its fields.
+	ExportHeight float32 = 460
 
 	// CloneHeight sizes the clone dialog.
 	CloneHeight float32 = 400
 
 	// PropertiesHeight sizes the pack properties dialog.
 	PropertiesHeight float32 = 480
+
+	// AddModHeight sizes the manual add mod dialogs.
+	AddModHeight float32 = 420
 
 	// ReleaseWidth and ReleaseHeight size the release dialog, which holds
 	// a changelog field and so needs more room than a plain form.

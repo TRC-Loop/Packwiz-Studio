@@ -56,23 +56,29 @@ func (w *Window) emptyRecents() fyne.CanvasObject {
 	)
 }
 
-// recentRow is one entry: logo, name, versions and path, with a remove
-// control that forgets the pack without touching it on disk.
+// recentRow is one entry: the pack's image if it has one, its name, its
+// versions and its path, with a control that forgets it without touching
+// anything on disk.
+//
+// The text lines are laid out as a fixed stack rather than a box, so the
+// three lines sit at even spacing and the row is the same height whether
+// or not the pack has an image.
 func (w *Window) recentRow(p config.Pack) fyne.CanvasObject {
-	details := container.NewVBox(
-		widgets.Body(p.Name),
+	// All three lines are canvas text so they share one left edge: a Label
+	// would add the theme's inner padding and sit indented from the rest.
+	details := container.New(&stackedLines{},
+		widgets.Strong(p.Name),
 		widgets.Caption(versionLine(p)),
 		widgets.Dim(p.Path),
 	)
 
-	row := container.NewBorder(
-		nil, nil,
-		container.NewCenter(widgets.PackLogo(pack.IconPath(p.Path), tokens.IconPackLogo)),
-		nil,
-		details,
-	)
+	body := fyne.CanvasObject(details)
+	if logo := widgets.PackLogo(pack.IconPath(p.Path), tokens.IconPackLogo); logo != nil {
+		body = container.NewBorder(nil, nil,
+			container.NewPadded(logo), nil, details)
+	}
 
-	card := widgets.NewClickable(row, func() { w.openPack(p.Path) })
+	card := widgets.NewClickable(body, func() { w.openPack(p.Path) })
 	if !w.sess.HasPackwiz() {
 		card.OnTapped = nil
 	}

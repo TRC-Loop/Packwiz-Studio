@@ -132,7 +132,7 @@ func (l *logoField) build() {
 
 	l.row.Objects = []fyne.CanvasObject{
 		container.NewBorder(nil, nil,
-			widgets.PackLogo(path, tokens.IconPackLogo), buttons, label),
+			widgets.PackLogoOrPlaceholder(path, tokens.IconPackLogo), buttons, label),
 	}
 	l.row.Refresh()
 }

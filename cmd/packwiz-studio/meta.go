@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	appID   = "com.stellarfoundry.packwizstudio"
+	appID   = "sh.arne.packwizstudio"
 	appName = "Packwiz Studio"
 	version = "1.0.0"
 )

@@ -42,7 +42,9 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 		Properties:    w.EditProperties,
 		RevealInFiles: func() { s.reveal(w.Pack().Dir) },
 
-		AddMod: w.FocusBrowse,
+		AddMod:     w.FocusBrowse,
+		AddFromURL: w.AddFromURL,
+		AddFromGit: w.AddFromGitHub,
 
 		ToggleSidePanel: w.ToggleSidePanel,
 		ToggleLog:       w.ToggleLog,

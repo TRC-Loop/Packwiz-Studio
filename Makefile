@@ -4,9 +4,11 @@
 # release targets here build for the host only. Use fyne-cross for other
 # platforms.
 
-BINARY  := packwiz-studio
-PKG     := ./cmd/packwiz-studio
-DIST    := dist
+BINARY   := packwiz-studio
+APP_NAME := Packwiz Studio
+APP_ID   := sh.arne.packwizstudio
+PKG      := ./cmd/packwiz-studio
+DIST     := dist
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 
 GOFILES := $(shell find . -name '*.go' -not -path './.git/*')
@@ -36,7 +38,18 @@ package: ## Bundle a native app package with the fyne tool
 	@command -v fyne >/dev/null || { \
 		echo "fyne tool not installed: go install fyne.io/tools/cmd/fyne@latest"; \
 		exit 1; }
-	fyne package --release --src $(PKG)
+	fyne package --release --src $(PKG) --name "$(APP_NAME)" --app-id $(APP_ID)
+
+.PHONY: app
+app: ## Build and launch the app bundle, so the OS shows the real app name
+	@command -v fyne >/dev/null || { \
+		echo "fyne tool not installed: go install fyne.io/tools/cmd/fyne@latest"; \
+		exit 1; }
+	fyne package --src $(PKG) --name "$(APP_NAME)" --app-id $(APP_ID)
+	@rm -rf "$(DIST)/$(APP_NAME).app"
+	@mkdir -p $(DIST)
+	@mv "$(APP_NAME).app" "$(DIST)/"
+	open "$(DIST)/$(APP_NAME).app"
 
 .PHONY: check
 check: fmt vet ## Format and vet everything

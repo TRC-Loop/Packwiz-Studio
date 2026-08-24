@@ -29,6 +29,8 @@ type Actions struct {
 
 	// Mods.
 	AddMod     func()
+	AddFromURL func()
+	AddFromGit func()
 	RemoveMod  func()
 	SideClient func()
 	SideServer func()
