@@ -23,6 +23,17 @@ var (
 	SyntaxBool = rgb(0x56, 0x9C, 0xD6)
 	// SyntaxPunct is structural: equals, brackets, braces, commas.
 	SyntaxPunct = gray(0x80)
+	// SyntaxKeyword is a reserved word.
+	SyntaxKeyword = rgb(0xC5, 0x86, 0xC0)
 	// SyntaxText is anything unclassified.
 	SyntaxText = ColorText
+
+	// SyntaxGutter is the line number column.
+	SyntaxGutter = gray(0x60)
+	// SyntaxGutterCurrent is the line number the caret is on.
+	SyntaxGutterCurrent = ColorText
+	// SyntaxCurrentLine tints the line the caret is on. It is barely above
+	// the ground on purpose: it marks where you are without competing with
+	// the selection.
+	SyntaxCurrentLine = gray(0x27, 0x27, 0x2A)
 )

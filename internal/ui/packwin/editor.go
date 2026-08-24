@@ -7,6 +7,7 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
+	"github.com/PalisadeMC/Packwiz-Studio/internal/syntax"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
@@ -19,6 +20,7 @@ type editor struct {
 	onSave func(rel, content string)
 
 	title *canvas.Text
+	lang  *canvas.Text
 	code  *widgets.Code
 	root  *fyne.Container
 
@@ -30,7 +32,8 @@ func newEditor(onSave func(rel, content string)) *editor {
 	e := &editor{
 		onSave: onSave,
 		title:  widgets.Caption(""),
-		code:   widgets.NewCode(tomlSpans),
+		lang:   widgets.Dim(""),
+		code:   widgets.NewCode(),
 	}
 
 	e.code.OnChanged = func(text string) {
@@ -46,7 +49,7 @@ func newEditor(onSave func(rel, content string)) *editor {
 
 	head := container.NewBorder(nil, nil,
 		widgets.Inset(tokens.SpaceMD, tokens.SpaceXS, e.title),
-		container.NewHBox(save), nil)
+		container.NewHBox(e.lang, save), nil)
 
 	e.root = container.NewBorder(
 		container.NewBorder(nil, widgets.Hairline(), nil, nil, head),
@@ -65,10 +68,18 @@ func (e *editor) focus(c fyne.Canvas) { e.code.Focus(c) }
 // dirty reports unsaved changes.
 func (e *editor) dirty() bool { return e.code.Text() != e.original }
 
-// load opens a file for editing.
+// load opens a file for editing, coloured and completed as whatever
+// language its name says it is.
 func (e *editor) load(rel, content string) {
 	e.rel = rel
 	e.original = content
+
+	lang := syntax.For(rel)
+	e.code.SetTokenizer(tokenizerFor(lang))
+	e.code.SetWords(lang.Completions())
+
+	e.lang.Text = lang.Name
+	e.lang.Refresh()
 
 	e.code.SetText(content)
 	e.markSaved()

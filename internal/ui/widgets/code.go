@@ -2,13 +2,16 @@ package widgets
 
 import (
 	"image/color"
+	"strconv"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/widget"
+
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 )
 
-// Span is a run of text in one colour, as a highlighter returns it.
+// Span is a run of text in one colour, as a tokenizer returns it.
 type Span struct {
 	Text   string
 	Color  color.Color
@@ -16,61 +19,69 @@ type Span struct {
 	Italic bool
 }
 
-// Code is a plain text editor that paints syntax highlighting over the
-// text as it is typed.
+// Tokenizer colours whole text, one token list per line. It takes the
+// whole text rather than a line because a block comment or an unclosed
+// string carries from one line into the next.
+type Tokenizer func(text string) [][]Span
+
+// Code is a text editor with line numbers, syntax colouring as you type,
+// automatic indentation and word completion.
 //
 // Fyne has no editable widget that takes a colour per token: an Entry can
 // be typed into but draws its text in a single colour, and a TextGrid
-// takes a colour per cell but cannot be typed into. So the Entry does the
+// takes a colour per cell but cannot be typed into. So an Entry does the
 // editing with its own text made transparent, and a layer of positioned
 // text on top supplies the colour. Both draw the same monospace font at
 // the same size, so the layer lines up character for character with what
 // the Entry believes it is showing.
 //
-// The layer is not interactive: it holds nothing that Fyne can send an
-// event to, so every click, drag and keystroke reaches the Entry beneath
-// it. Selection and the cursor are drawn under the text by the Entry, so
-// they stay visible through the layer.
+// The layer holds nothing Fyne can send an event to, so every click, drag
+// and keystroke reaches the Entry beneath it. The caret, the selection and
+// the current line sit under the text, drawn by the Entry and by the
+// underlay, so all three stay visible through the layer.
 type Code struct {
-	// OnChanged reports every edit, after the highlighting is redrawn.
+	// OnChanged reports every edit, after the colouring is redrawn.
 	OnChanged func(string)
 
-	entry    *widget.Entry
-	layer    *fyne.Container
-	place    *placedLayout
-	scroll   *container.Scroll
-	root     fyne.CanvasObject
-	tokenize func(string) []Span
+	entry  *codeEntry
+	layer  *fyne.Container
+	place  *placedLayout
+	gutter *gutterLayout
+	line   *canvas.Rectangle
+	scroll *container.Scroll
+	root   fyne.CanvasObject
+
+	tokenize Tokenizer
+	numbers  []*canvas.Text
+	rows     int
 }
 
-// NewCode builds an editor that colours each line with tokenize.
-func NewCode(tokenize func(string) []Span) *Code {
+// NewCode builds an editor with nothing open in it.
+func NewCode() *Code {
 	c := &Code{
-		tokenize: tokenize,
-		place:    &placedLayout{},
-		entry:    widget.NewMultiLineEntry(),
+		place:  &placedLayout{},
+		gutter: &gutterLayout{},
+		line:   canvas.NewRectangle(tokens.SyntaxCurrentLine),
 	}
 
-	c.entry.TextStyle = fyne.TextStyle{Monospace: true}
-
-	// Wrapping off and scrolling off together are what make the entry size
-	// itself to its content. It then sits inside this widget's own scroll,
-	// which the highlighted layer shares, so the two cannot drift apart.
-	c.entry.Wrapping = fyne.TextWrapOff
-	c.entry.Scroll = fyne.ScrollNone
-
-	c.entry.OnChanged = func(text string) {
-		c.repaint()
-		if c.OnChanged != nil {
-			c.OnChanged(text)
-		}
-	}
-	c.entry.OnCursorChanged = c.followCursor
-
+	c.entry = newCodeEntry(c)
 	c.layer = container.New(c.place)
 
 	hidden := container.NewThemeOverride(c.entry, newInvisibleText())
-	c.scroll = container.NewScroll(container.NewStack(hidden, c.layer))
+	held := container.New(c.gutter, hidden)
+
+	// The current line sits under everything, including the entry, so the
+	// caret and any selection are drawn on top of it rather than hidden
+	// behind it.
+	underlay := container.NewWithoutLayout(c.line)
+
+	// The suggestion list is a positioned child of the editor rather than
+	// an overlay, so that showing it does not move the keyboard focus.
+	menu := container.NewWithoutLayout()
+	c.entry.menu = newCompletions(menu, c.entry.take)
+
+	c.scroll = container.NewScroll(
+		container.NewStack(underlay, held, c.layer, menu))
 	c.root = c.scroll
 
 	return c
@@ -79,10 +90,20 @@ func NewCode(tokenize func(string) []Span) *Code {
 // Object returns the editor for placement.
 func (c *Code) Object() fyne.CanvasObject { return c.root }
 
+// SetTokenizer chooses how the text is coloured.
+func (c *Code) SetTokenizer(t Tokenizer) {
+	c.tokenize = t
+	c.repaint()
+}
+
+// SetWords gives the completion popup the language's own words, on top of
+// whatever the file itself contains.
+func (c *Code) SetWords(list []string) { c.entry.words = list }
+
 // Text is the current content.
 func (c *Code) Text() string { return c.entry.Text }
 
-// SetText replaces the content and redraws the highlighting.
+// SetText replaces the content and redraws.
 func (c *Code) SetText(text string) {
 	c.entry.SetText(text)
 	c.repaint()
@@ -96,14 +117,45 @@ func (c *Code) Focus(canvas fyne.Canvas) {
 	}
 }
 
+// changed is the entry's edit handler.
+func (c *Code) changed(text string) {
+	c.repaint()
+	if c.OnChanged != nil {
+		c.OnChanged(text)
+	}
+}
+
+// gutterWidth is how much room the line numbers need for this file. It is
+// measured from the line count so that the text does not shift sideways
+// when a file grows past ten or a hundred lines while being edited.
+func (c *Code) gutterWidth() float32 {
+	digits := len(strconv.Itoa(max(c.rows, 1)))
+	return codeCell().Width*float32(digits+1) + gutterPad
+}
+
+// markLine puts the current line tint behind the caret's row and follows
+// the caret with the scroll.
+func (c *Code) markLine() {
+	cell := codeCell()
+	origin := codeOrigin(c.gutter.width)
+
+	width := max(c.scroll.Content.Size().Width, c.scroll.Size().Width)
+	c.line.Resize(fyne.NewSize(width, cell.Height))
+	c.line.Move(fyne.NewPos(0, origin.Y+cell.Height*float32(c.entry.CursorRow)))
+	c.line.Refresh()
+
+	c.repaintGutter()
+	c.followCursor()
+}
+
 // followCursor keeps the caret in view. The entry does no scrolling of
 // its own here, so moving off the visible area is this widget's job.
 func (c *Code) followCursor() {
 	cell := codeCell()
-	origin := codeOrigin()
+	origin := codeOrigin(c.gutter.width)
 
-	top := origin.Y + float32(c.entry.CursorRow)*cell.Height
-	left := origin.X + float32(c.entry.CursorColumn)*cell.Width
+	top := origin.Y + cell.Height*float32(c.entry.CursorRow)
+	left := origin.X + cell.Width*float32(c.entry.CursorColumn)
 
 	view := c.scroll.Size()
 	off := c.scroll.Offset
@@ -115,8 +167,8 @@ func (c *Code) followCursor() {
 		off.Y = top + cell.Height - view.Height
 	}
 	switch {
-	case left < off.X:
-		off.X = left
+	case left-origin.X < off.X:
+		off.X = max(left-origin.X, 0)
 	case left+cell.Width > off.X+view.Width:
 		off.X = left + cell.Width - view.Width
 	}
