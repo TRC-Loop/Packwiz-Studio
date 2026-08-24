@@ -62,8 +62,7 @@ func (p placeholder) Main() fyne.CanvasObject {
 // action it will not perform.
 func (w *Window) activities() []Activity {
 	list := []Activity{
-		placeholder{ActivityMods, "Mods", fynetheme.ListIcon(),
-			"The installed mods list is not built yet."},
+		newModsActivity(w.deps),
 		placeholder{ActivityBrowse, "Browse", fynetheme.SearchIcon(),
 			"The Modrinth browser is not built yet."},
 		placeholder{ActivityFiles, "Files", fynetheme.DocumentIcon(),

@@ -34,6 +34,8 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 		CloseWindow: w.Close,
 		Settings:    s.launcher.ShowSettings,
 
+		Refresh:       w.RefreshIndex,
+		CheckUpdates:  w.CheckUpdates,
 		SetLogo:       w.SetLogo,
 		RevealInFiles: func() { s.reveal(w.Pack().Dir) },
 

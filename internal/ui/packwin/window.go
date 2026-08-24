@@ -28,6 +28,9 @@ type Window struct {
 	// onClose hands the window back to whatever opened this pack.
 	onClose func()
 
+	// deps is what the activities share.
+	deps *activityDeps
+
 	head   *fyne.Container
 	rail   *activityBar
 	side   *sidePanel
@@ -51,6 +54,13 @@ func New(sess *studio.Session, win fyne.Window, p pack.Pack, onClose func()) *Wi
 		gitAvailable: git.Available(),
 		onClose:      onClose,
 		current:      ActivityMods,
+	}
+
+	w.deps = &activityDeps{
+		sess:          sess,
+		win:           win,
+		pack:          p,
+		onPackChanged: w.Reload,
 	}
 
 	w.items = w.activities()
