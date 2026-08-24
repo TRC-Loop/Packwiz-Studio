@@ -86,6 +86,22 @@ func Note(text string) *widget.Label {
 	return l
 }
 
+// Line is quiet single-line text that is cut off rather than allowed to
+// overflow.
+//
+// The canvas.Text helpers above draw their whole string whatever room
+// they were given, which inside a fixed size card means the text runs out
+// over its neighbours. A Label is the only thing in Fyne that ellipsises,
+// so anything whose length comes from the network uses this.
+func Line(text string) *widget.Label {
+	l := widget.NewLabel(text)
+	l.SizeName = fynetheme.SizeNameCaptionText
+	l.Importance = widget.LowImportance
+	l.Truncation = fyne.TextTruncateEllipsis
+	l.Wrapping = fyne.TextWrapOff
+	return l
+}
+
 // State selects a status colour.
 type State int
 

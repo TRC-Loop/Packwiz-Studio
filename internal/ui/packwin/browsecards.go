@@ -67,9 +67,17 @@ func (a *browseActivity) card(h modrinth.Hit) fyne.CanvasObject {
 	desc.Wrapping = fyne.TextWrapWord
 	desc.SizeName = fynetheme.SizeNameCaptionText
 
+	// The detail line is a truncating label rather than canvas text: its
+	// length is whatever Modrinth returned, and a card is a fixed size, so
+	// anything longer has to be cut off rather than drawn over the card
+	// beside it.
+	lines := container.NewVBox(title)
+	if detail := a.detailLine(h); detail != "" {
+		lines.Add(widgets.Line(detail))
+	}
+
 	head := container.NewBorder(nil, nil,
-		widgets.RemoteImage(h.IconURL, tokens.IconModCard), nil,
-		container.NewVBox(title, widgets.Dim(a.detailLine(h))),
+		widgets.RemoteImage(h.IconURL, tokens.IconModCard), nil, lines,
 	)
 
 	body := container.NewBorder(
@@ -83,15 +91,17 @@ func (a *browseActivity) card(h modrinth.Hit) fyne.CanvasObject {
 // listRow is one compact entry: small icon, title, description, and
 // whichever details the settings ask for.
 //
-// Every line is canvas text so they share a left edge, since a Label
-// would carry the theme's inner padding and sit indented from the rest.
+// Every line is a Label, so they share a left edge and every one of them
+// ellipsises. Canvas text would align just as well but would draw its
+// whole string over whatever sits to the right of it.
 func (a *browseActivity) listRow(h modrinth.Hit) fyne.CanvasObject {
-	lines := []fyne.CanvasObject{
-		widgets.Strong(h.Title),
-		widgets.Dim(clip(h.Description)),
-	}
+	title := widgets.Body(h.Title)
+	title.TextStyle = fyne.TextStyle{Bold: true}
+	title.Truncation = fyne.TextTruncateEllipsis
+
+	lines := []fyne.CanvasObject{title, widgets.Line(h.Description)}
 	if detail := a.detailLine(h); detail != "" {
-		lines = append(lines, widgets.Caption(clip(detail)))
+		lines = append(lines, widgets.Line(detail))
 	}
 
 	row := container.NewBorder(nil, nil,
@@ -159,16 +169,6 @@ func (a *browseActivity) add(h modrinth.Hit) {
 			return a.deps.client().AddModrinth(ctx, h.Ref(), deps)
 		})
 	})
-}
-
-// clip shortens a line to what a row shows, since canvas text neither
-// wraps nor ellipsises on its own.
-func clip(text string) string {
-	runes := []rune(text)
-	if len(runes) <= tokens.BrowseLineChars {
-		return text
-	}
-	return strings.TrimRight(string(runes[:tokens.BrowseLineChars-1]), " ") + "..."
 }
 
 // categoryLine renders a hit's categories, capped so a card's second line

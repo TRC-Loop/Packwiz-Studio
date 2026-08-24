@@ -84,11 +84,6 @@ const (
 	// demand.
 	BrowseMinWidth float32 = 2*ModCardWidth + SpaceXXL
 
-	// BrowseLineChars is how much of a result's description a list row
-	// shows. The row is one line by design, and canvas text neither wraps
-	// nor ellipsises, so the cut is made on the string.
-	BrowseLineChars = 96
-
 	// DialogChrome is the vertical room a dialog spends on its own title
 	// row and button row, which scrolling content has to leave free.
 	DialogChrome float32 = 96
