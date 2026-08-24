@@ -85,6 +85,10 @@ jobs:
 
       # Packaging on Windows embeds the icon and version metadata and
       # builds without a console window attached.
+      #
+      # The fyne tool changes into the source directory before building,
+      # so the exe is left beside the main package rather than in the
+      # workspace root.
       - name: Package exe
         shell: bash
         run: |
@@ -96,7 +100,16 @@ jobs:
             --app-id "$APP_ID" \
             --icon "$GITHUB_WORKSPACE/Icon.png" \
             --app-version "${VERSION#v}"
-          mv "Packwiz Studio.exe" "$APP_NAME-windows-amd64.exe"
+
+          built="cmd/packwiz-studio/Packwiz Studio.exe"
+          if [ ! -f "$built" ]; then
+            built=$(find . -name '*.exe' | head -1)
+          fi
+          if [ -z "$built" ]; then
+            echo "no exe was produced"
+            exit 1
+          fi
+          mv "$built" "$APP_NAME-windows-amd64.exe"
         env:
           VERSION: ${{ github.event.release.tag_name || inputs.tag }}
           CGO_ENABLED: 1
