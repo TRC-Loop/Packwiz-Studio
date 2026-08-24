@@ -10,12 +10,12 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/packwiz"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/logbus"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/studio"
 )
 
 // activityDeps is what every activity needs: the session, the window to

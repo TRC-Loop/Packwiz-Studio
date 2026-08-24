@@ -6,7 +6,7 @@ import (
 	"fyne.io/fyne/v2"
 	fynetheme "fyne.io/fyne/v2/theme"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 )
 
 // Color maps Fyne's colour roles onto the palette. The variant is

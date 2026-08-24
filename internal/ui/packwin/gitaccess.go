@@ -5,7 +5,7 @@ import (
 
 	"fyne.io/fyne/v2/dialog"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/sysopen"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/sysopen"
 )
 
 // gitActivityOrNil finds the git activity, which is absent when the git

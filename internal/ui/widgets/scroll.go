@@ -4,7 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 )
 
 // Scrollable wraps tall content so it scrolls inside a dialog.

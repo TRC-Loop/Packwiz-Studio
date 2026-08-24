@@ -3,7 +3,7 @@ package packwin
 import (
 	"context"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // reloader is an activity that rebuilds itself from disk. Not every

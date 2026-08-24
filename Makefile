@@ -77,7 +77,7 @@ tidy: ## Tidy go.mod and go.sum
 .PHONY: deps
 deps: ## List the direct dependencies
 	@go list -f '{{range .Imports}}{{.}}{{"\n"}}{{end}}' ./... \
-		| grep -v '^github.com/TRC-Loop/Packwiz-Studio' \
+		| grep -v '^github.com/PalisadeMC/Packwiz-Studio' \
 		| grep '\.' | sort -u
 
 .PHONY: clean

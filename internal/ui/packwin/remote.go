@@ -1,7 +1,7 @@
 package packwin
 
 import (
-	"github.com/TRC-Loop/Packwiz-Studio/internal/forge"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/forge"
 )
 
 // remoteWebURL turns a git remote URL into the repository's page, so the

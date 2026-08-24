@@ -5,7 +5,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
 )
 
 // SetLogo copies a chosen PNG into the pack folder as its logo, so it is

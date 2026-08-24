@@ -12,10 +12,10 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // Export asks where the .mrpack should go and writes it there.
@@ -65,8 +65,10 @@ func (w *Window) Export() {
 		remember,
 	)
 
+	size := widgets.FitDialog(w.win, tokens.FormWidth, tokens.ExportHeight)
+
 	d := dialog.NewCustomConfirm("Export Modrinth pack", "Export", "Cancel",
-		widgets.Scrollable(tokens.FormWidth, tokens.ExportHeight,
+		widgets.Scrollable(size.Width, size.Height,
 			widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
 		func(export bool) {
 			if !export {
@@ -75,7 +77,7 @@ func (w *Window) Export() {
 			w.runExport(folder.Text, name.Text, remember.Checked)
 		}, w.win)
 
-	d.Resize(fyne.NewSize(tokens.FormWidth, tokens.ExportHeight))
+	d.Resize(size)
 	d.Show()
 }
 

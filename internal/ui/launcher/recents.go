@@ -4,10 +4,10 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // buildRecents is the launcher's main screen: known packs on the left,

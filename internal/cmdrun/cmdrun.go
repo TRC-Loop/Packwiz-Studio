@@ -17,7 +17,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/logbus"
 )
 
 // Runner executes commands and reports them to a bus.

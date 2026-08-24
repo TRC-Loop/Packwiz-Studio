@@ -10,11 +10,11 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/sysopen"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/sysopen"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // showDetail renders the selected mod in the detail pane.

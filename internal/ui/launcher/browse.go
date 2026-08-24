@@ -7,8 +7,8 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/storage"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/packwiz"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // report is how a caller receives a message about what happened, so the

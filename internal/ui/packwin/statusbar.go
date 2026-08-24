@@ -7,9 +7,9 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/git"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/git"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // statusBar is the window's foot: git state on the left, packwiz state in

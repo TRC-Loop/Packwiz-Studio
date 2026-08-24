@@ -8,10 +8,10 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/modrinth"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/modrinth"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // browseActivity searches Modrinth and adds results to the pack.
@@ -55,7 +55,10 @@ func newBrowseActivity(deps *activityDeps) *browseActivity {
 	a.search.SetPlaceHolder("Search Modrinth")
 	a.search.OnSubmitted = func(string) { a.runSearch(0) }
 
-	a.onlyPack = widget.NewCheck("Match this pack", func(bool) { a.runSearch(0) })
+	// The filter starts on, but its callback is attached only after every
+	// widget exists. SetChecked fires OnChanged immediately, and a search
+	// triggered from here would touch widgets that are still nil.
+	a.onlyPack = widget.NewCheck("Match this pack", nil)
 	a.onlyPack.SetChecked(true)
 
 	a.viewMode = widget.NewButtonWithIcon("", a.modeIcon(), a.toggleMode)
@@ -65,6 +68,8 @@ func newBrowseActivity(deps *activityDeps) *browseActivity {
 	a.more.Hide()
 
 	a.message.Hide()
+
+	a.onlyPack.OnChanged = func(bool) { a.runSearch(0) }
 
 	a.main.Objects = []fyne.CanvasObject{a.layout()}
 	a.reloadInstalled()

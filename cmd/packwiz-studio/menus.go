@@ -4,11 +4,11 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/sysopen"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/menu"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/packwin"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/sysopen"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/menu"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/packwin"
 )
 
 // launcherMenu is the menubar while the window shows the launcher. Pack

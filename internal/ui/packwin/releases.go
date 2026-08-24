@@ -8,11 +8,11 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/forge"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/git"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/secrets"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/forge"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/git"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/secrets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // releasesActivity publishes a release to whichever host the remote

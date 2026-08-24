@@ -3,7 +3,7 @@ package packwiz
 import (
 	"context"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // The subcommand names below use packwiz's canonical spellings rather

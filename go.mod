@@ -1,4 +1,4 @@
-module github.com/TRC-Loop/Packwiz-Studio
+module github.com/PalisadeMC/Packwiz-Studio
 
 go 1.23.3
 

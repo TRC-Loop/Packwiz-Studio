@@ -4,7 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	fynetheme "fyne.io/fyne/v2/theme"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 )
 
 // Size maps Fyne's metric roles onto the spacing scale and type scale.

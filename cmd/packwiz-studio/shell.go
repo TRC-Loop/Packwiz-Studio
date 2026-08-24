@@ -4,10 +4,10 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/launcher"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/packwin"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/studio"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/launcher"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/packwin"
 )
 
 // shell owns one window and what is currently inside it.

@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/logbus"
 )
 
 // Method is how a packwiz binary was obtained.

@@ -56,9 +56,11 @@ const (
 
 // Window sizes.
 const (
-	// LauncherWidth and LauncherHeight size the launcher window.
-	LauncherWidth  float32 = 720
-	LauncherHeight float32 = 460
+	// LauncherWidth and LauncherHeight size the launcher window. It is
+	// roomy enough for the new pack form to open inside it: a dialog
+	// taller than its window is clipped, buttons and all.
+	LauncherWidth  float32 = 900
+	LauncherHeight float32 = 620
 
 	// PackWindowWidth and PackWindowHeight size a new pack window.
 	PackWindowWidth  float32 = 1100

@@ -11,10 +11,11 @@ import (
 
 	"fyne.io/fyne/v2"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/packwiz"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/logbus"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/mcmeta"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
 )
 
 // Session is the shared state of a running app.
@@ -27,6 +28,9 @@ type Session struct {
 	Bus *logbus.Bus
 	// Runner executes packwiz and git.
 	Runner *cmdrun.Runner
+	// Meta looks up Minecraft and loader versions, cached for the life of
+	// the app so reopening the new pack form does not refetch them.
+	Meta *mcmeta.Cache
 
 	mu   sync.RWMutex
 	tool packwiz.Location
@@ -47,6 +51,7 @@ func New(app fyne.App, cfg *config.Store) *Session {
 		Cfg:    cfg,
 		Bus:    bus,
 		Runner: cmdrun.New(bus),
+		Meta:   mcmeta.NewCache(nil),
 	}
 }
 

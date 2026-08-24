@@ -3,7 +3,7 @@ package git
 import (
 	"context"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // TagExists reports whether a tag is present locally.

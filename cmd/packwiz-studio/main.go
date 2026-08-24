@@ -7,10 +7,10 @@ import (
 
 	"fyne.io/fyne/v2/app"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/theme"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/logbus"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/studio"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/theme"
 )
 
 func main() {

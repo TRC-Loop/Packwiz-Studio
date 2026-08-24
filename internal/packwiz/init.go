@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // Loader identifies a mod loader packwiz can initialise a pack for.

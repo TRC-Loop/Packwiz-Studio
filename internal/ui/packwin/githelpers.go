@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // result is the command outcome type the git helpers pass around.

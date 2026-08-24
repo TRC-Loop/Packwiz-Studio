@@ -19,7 +19,7 @@ const baseURL = "https://api.modrinth.com/v2"
 
 // userAgent identifies the app to Modrinth, which their API guidelines
 // ask for so a misbehaving client can be contacted rather than blocked.
-const userAgent = "TRC-Loop/Packwiz-Studio (github.com/TRC-Loop/Packwiz-Studio)"
+const userAgent = "PalisadeMC/Packwiz-Studio (github.com/PalisadeMC/Packwiz-Studio)"
 
 // Client queries the Modrinth API.
 type Client struct {

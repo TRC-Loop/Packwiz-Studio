@@ -13,10 +13,10 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/git"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/git"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // ShowClone clones a pack's repository and opens it.
@@ -70,8 +70,10 @@ func (w *Window) ShowClone() {
 		folder,
 	)
 
+	size := widgets.FitDialog(w.win, tokens.FormWidth, tokens.CloneHeight)
+
 	d := dialog.NewCustomConfirm("Clone a pack", "Clone", "Cancel",
-		widgets.Scrollable(tokens.FormWidth, tokens.CloneHeight,
+		widgets.Scrollable(size.Width, size.Height,
 			widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
 		func(clone bool) {
 			if clone {
@@ -79,7 +81,7 @@ func (w *Window) ShowClone() {
 			}
 		}, w.win)
 
-	d.Resize(fyne.NewSize(tokens.FormWidth, tokens.CloneHeight))
+	d.Resize(size)
 	d.Show()
 }
 

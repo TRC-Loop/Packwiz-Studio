@@ -3,7 +3,7 @@ package changelog
 import (
 	"strings"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
 )
 
 // Render turns entries into release notes in the chosen format. The result

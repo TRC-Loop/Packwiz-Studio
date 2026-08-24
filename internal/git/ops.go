@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // Change is one path that differs from HEAD.

@@ -15,7 +15,7 @@ description: |
   Packwiz Studio drives the packwiz command line tool and publishes to
   Modrinth.
 vendor: Stellar Foundry
-homepage: https://github.com/TRC-Loop/Packwiz-Studio
+homepage: https://github.com/PalisadeMC/Packwiz-Studio
 license: GPL-3.0
 
 contents:
@@ -38,7 +38,7 @@ recommends:
 
 deb:
   fields:
-    Bugs: https://github.com/TRC-Loop/Packwiz-Studio/issues
+    Bugs: https://github.com/PalisadeMC/Packwiz-Studio/issues
 
 rpm:
   group: Applications/System

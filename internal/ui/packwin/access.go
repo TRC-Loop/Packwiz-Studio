@@ -1,8 +1,8 @@
 package packwin
 
 import (
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/pack"
 )
 
 // browse finds the browser activity, or nil when it is not present.

@@ -6,13 +6,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/forge"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/logbus"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/forge"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/logbus"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // formatLabels are the changelog formats as the form offers them.
@@ -135,6 +135,8 @@ func (a *releasesActivity) askForToken(f *releaseForm, tag string) {
 
 	body := tokenPrompt(a.host, entry, remember)
 
+	size := widgets.FitDialog(a.deps.win, tokens.FormWidth, tokenPromptHeight)
+
 	d := dialog.NewCustomConfirm("API token for "+a.host.Remote.Host,
 		"Continue", "Cancel", body,
 		func(ok bool) {
@@ -158,7 +160,7 @@ func (a *releasesActivity) askForToken(f *releaseForm, tag string) {
 			a.doPublish(f, tag, token)
 		}, a.deps.win)
 
-	d.Resize(fyne.NewSize(tokens.FormWidth, tokenPromptHeight))
+	d.Resize(size)
 	d.Show()
 }
 

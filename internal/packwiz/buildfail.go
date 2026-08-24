@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // buildFailed turns a failed source build into an error carrying Go's own

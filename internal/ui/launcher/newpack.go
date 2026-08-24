@@ -1,7 +1,6 @@
 package launcher
 
 import (
-	"context"
 	"path/filepath"
 
 	"fyne.io/fyne/v2"
@@ -11,95 +10,89 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/packwiz"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/mcmeta"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/packwiz"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
-// newPackForm holds the widgets of the new pack dialog, so validation and
-// submission can read them without a closure per field.
+// newPackForm holds the widgets of the new pack dialog.
+//
+// The three version fields are dependent: a loader is chosen first, then a
+// Minecraft version, then a build of that loader for that version. Each
+// list is fetched from the loader's own metadata service, so the form
+// offers what actually exists rather than trusting a typed version.
 type newPackForm struct {
-	dir           *widget.Entry
-	name          *widget.Entry
-	author        *widget.Entry
-	version       *widget.Entry
-	mcVersion     *widget.Entry
+	win *Window
+
+	dir     *widget.Entry
+	name    *widget.Entry
+	author  *widget.Entry
+	version *widget.Entry
+
 	loader        *widget.Select
-	loaderVersion *widget.Entry
-	problem       *widget.Label
+	mcVersion     *widget.Select
+	snapshots     *widget.Check
+	loaderVersion *widget.Select
+	loaderManual  *widget.Entry
+
+	status *widget.Label
+
+	// games holds every Minecraft version once fetched, so toggling
+	// snapshots refilters without another request.
+	games []mcmeta.Version
 }
 
-// showNewPack collects everything `packwiz init` asks for and runs it.
+// ShowNewPack collects everything packwiz init asks for and runs it.
 func (w *Window) ShowNewPack() {
 	f := &newPackForm{
-		dir:           widget.NewEntry(),
-		name:          widget.NewEntry(),
-		author:        widget.NewEntry(),
-		version:       widget.NewEntry(),
-		mcVersion:     widget.NewEntry(),
-		loaderVersion: widget.NewEntry(),
-		problem:       widget.NewLabel(""),
+		win:     w,
+		dir:     widget.NewEntry(),
+		name:    widget.NewEntry(),
+		author:  widget.NewEntry(),
+		version: widget.NewEntry(),
+		status:  widgets.Note(""),
 	}
 
 	f.dir.SetPlaceHolder("an empty folder for the pack")
 	f.version.SetText("1.0.0")
-	f.mcVersion.SetPlaceHolder("1.20.1")
-	f.loaderVersion.SetPlaceHolder("leave empty for the latest")
 
-	labels := make([]string, 0, len(packwiz.Loaders))
-	for _, l := range packwiz.Loaders {
-		labels = append(labels, l.Label())
-	}
-	f.loader = widget.NewSelect(labels, nil)
-	f.loader.SetSelectedIndex(0)
+	f.buildVersionControls()
 
-	f.problem.Importance = widget.DangerImportance
-	f.problem.Wrapping = fyne.TextWrapWord
-	f.problem.Hide()
-
-	browse := widget.NewButtonWithIcon("", fynetheme.FolderOpenIcon(), func() {
-		open := dialog.NewFolderOpen(func(list fyne.ListableURI, err error) {
-			if err != nil || list == nil {
-				return
-			}
-			f.dir.SetText(list.Path())
-			if f.name.Text == "" {
-				f.name.SetText(filepath.Base(list.Path()))
-			}
-		}, w.win)
-		if dir, err := storage.ListerForURI(storage.NewFileURI(defaultBrowseDir())); err == nil {
-			open.SetLocation(dir)
-		}
-		open.Show()
-	})
+	browse := widget.NewButtonWithIcon("", fynetheme.FolderOpenIcon(), f.pickFolder)
 
 	body := container.NewVBox(
 		widgets.Muted("Folder"),
 		container.NewBorder(nil, nil, nil, browse, f.dir),
-		widgets.VSpace(tokens.SpaceSM),
 
+		widgets.VSpace(tokens.SpaceSM),
 		widgets.Muted("Pack name"),
 		f.name,
 		widgets.Muted("Author"),
 		f.author,
 		widgets.Muted("Pack version"),
 		f.version,
+
 		widgets.VSpace(tokens.SpaceSM),
+		widgets.Muted("Mod loader"),
+		f.loader,
 
 		widgets.Muted("Minecraft version"),
 		f.mcVersion,
-		widgets.Muted("Mod loader"),
-		f.loader,
+		f.snapshots,
+
 		widgets.Muted("Loader version"),
 		f.loaderVersion,
+		f.loaderManual,
 
 		widgets.VSpace(tokens.SpaceSM),
-		f.problem,
+		f.status,
 	)
 
+	size := widgets.FitDialog(w.win, tokens.FormWidth, tokens.FormHeight)
+
 	d := dialog.NewCustomConfirm("New pack", "Create", "Cancel",
-		widgets.Scrollable(tokens.FormWidth, tokens.FormHeight,
+		widgets.Scrollable(size.Width, size.Height,
 			widgets.Inset(tokens.SpaceMD, tokens.SpaceMD, body)),
 		func(create bool) {
 			if create {
@@ -107,8 +100,30 @@ func (w *Window) ShowNewPack() {
 			}
 		}, w.win)
 
-	d.Resize(fyne.NewSize(tokens.FormWidth, tokens.FormHeight))
+	d.Resize(size)
 	d.Show()
+
+	// Fetching starts after the dialog is up, so the form appears at once
+	// and fills itself in.
+	f.loadGameVersions()
+}
+
+// pickFolder chooses the pack folder, defaulting the pack name to it.
+func (f *newPackForm) pickFolder() {
+	open := dialog.NewFolderOpen(func(list fyne.ListableURI, err error) {
+		if err != nil || list == nil {
+			return
+		}
+		f.dir.SetText(list.Path())
+		if f.name.Text == "" {
+			f.name.SetText(filepath.Base(list.Path()))
+		}
+	}, f.win.win)
+
+	if dir, err := storage.ListerForURI(storage.NewFileURI(defaultBrowseDir())); err == nil {
+		open.SetLocation(dir)
+	}
+	open.Show()
 }
 
 // options turns the form into init options.
@@ -123,53 +138,20 @@ func (f *newPackForm) options() packwiz.InitOptions {
 		Name:          f.name.Text,
 		Author:        f.author.Text,
 		Version:       f.version.Text,
-		MCVersion:     f.mcVersion.Text,
+		MCVersion:     f.mcVersion.Selected,
 		Loader:        loader,
-		LoaderVersion: f.loaderVersion.Text,
+		LoaderVersion: f.chosenLoaderVersion(),
 	}
 }
 
-// createPack validates the form, then runs packwiz init and opens the
-// result. Validation happens before anything is run, so a bad form never
-// reaches the command line.
-func (w *Window) createPack(f *newPackForm) {
-	opts := f.options()
-	if err := opts.Validate(); err != nil {
-		dialog.ShowError(err, w.win)
-		return
+// chosenLoaderVersion reads whichever loader version control is in use.
+// An empty result means latest, which is what packwiz defaults to.
+func (f *newPackForm) chosenLoaderVersion() string {
+	if f.loaderManual.Visible() {
+		return f.loaderManual.Text
 	}
-	if pack.IsPack(opts.Dir) {
-		dialog.ShowError(errAlreadyAPack, w.win)
-		return
+	if f.loaderVersion.Selected == latestLabel {
+		return ""
 	}
-
-	go func() {
-		res, err := w.sess.Client(opts.Dir).Init(context.Background(), opts)
-
-		fyne.Do(func() {
-			if err != nil {
-				dialog.ShowError(err, w.win)
-				return
-			}
-			if !res.OK() {
-				dialog.ShowError(initFailed(res.Output()), w.win)
-				return
-			}
-			w.finishNewPack(opts.Dir)
-		})
-	}()
-}
-
-// finishNewPack records the new pack and opens it.
-func (w *Window) finishNewPack(dir string) {
-	p, err := pack.Load(dir)
-	if err != nil {
-		dialog.ShowError(err, w.win)
-		return
-	}
-	if err := w.sess.Cfg.Touch(p.Dir, p.Name, p.MCVersion, p.Loader); err != nil {
-		dialog.ShowError(err, w.win)
-		return
-	}
-	w.openPack(p.Dir)
+	return f.loaderVersion.Selected
 }

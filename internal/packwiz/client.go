@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/cmdrun"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/cmdrun"
 )
 
 // Client runs packwiz commands against one pack folder.

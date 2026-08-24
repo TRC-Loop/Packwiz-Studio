@@ -10,9 +10,9 @@ import (
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/config"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
+	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
 
 // ShowSettings opens the app settings.
@@ -55,17 +55,15 @@ func (w *Window) ShowSettings() {
 		gitEnabled,
 		widgets.Note("Turn this off to keep the app out of your repository. "+
 			"The git and releases sections disappear and no git command is "+
-			"ever run, so you can manage the repo with another client."),
-
-		widgets.VSpace(tokens.SpaceLG),
-		widgets.SubHeading("Releases"),
-		widgets.Note("API tokens are stored in the system keyring, one per "+
-			"host, and are never written to the config file. Clear a stored "+
-			"token from a pack window under Release."),
+			"ever run, so you can manage the repo with another client. "+
+			"Release API tokens live in the system keyring, one per host, "+
+			"and are never written to the config file."),
 	)
 
+	size := widgets.FitDialog(w.win, tokens.SettingsWidth, tokens.SettingsHeight)
+
 	d := dialog.NewCustomConfirm("Settings", "Save", "Cancel",
-		widgets.Scrollable(tokens.SettingsWidth, tokens.SettingsHeight, form),
+		widgets.Scrollable(size.Width, size.Height, form),
 		func(save bool) {
 			if !save {
 				return
@@ -76,7 +74,7 @@ func (w *Window) ShowSettings() {
 			})
 		}, w.win)
 
-	d.Resize(fyne.NewSize(tokens.SettingsWidth, tokens.SettingsHeight))
+	d.Resize(size)
 	d.Show()
 }
 
