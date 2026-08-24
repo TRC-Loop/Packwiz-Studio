@@ -8,7 +8,7 @@ import (
 const (
 	appID   = "sh.arne.packwizstudio"
 	appName = "Packwiz Studio"
-	version = "1.0.0"
+	version = "1.1.0"
 )
 
 // declareMetadata registers app metadata in code rather than relying on
