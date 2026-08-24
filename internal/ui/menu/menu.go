@@ -46,6 +46,7 @@ type Actions struct {
 	// Release. All nil when the git integration is off.
 	NewRelease        func()
 	GenerateChangelog func()
+	ForgetToken       func()
 
 	// View.
 	ToggleSidePanel func()

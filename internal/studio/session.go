@@ -33,6 +33,10 @@ type Session struct {
 	// toolListeners are notified whenever the packwiz binary changes, so
 	// a status bar or a disabled button can update itself.
 	toolListeners []func(packwiz.Location)
+	// configListeners are notified when settings are saved. Turning the
+	// git integration off has to reach an already open pack window, whose
+	// icon rail was built when the setting still said otherwise.
+	configListeners []func()
 }
 
 // New returns a Session wired to the given config store.
@@ -87,6 +91,27 @@ func (s *Session) OnPackwizChange(fn func(packwiz.Location)) {
 	s.mu.Lock()
 	s.toolListeners = append(s.toolListeners, fn)
 	s.mu.Unlock()
+}
+
+// OnConfigChange registers fn for every settings save. It is called on
+// the goroutine that saved, so a UI listener must hop to the main thread
+// with fyne.Do.
+func (s *Session) OnConfigChange(fn func()) {
+	s.mu.Lock()
+	s.configListeners = append(s.configListeners, fn)
+	s.mu.Unlock()
+}
+
+// ConfigChanged announces that settings were saved.
+func (s *Session) ConfigChanged() {
+	s.mu.RLock()
+	listeners := make([]func(), len(s.configListeners))
+	copy(listeners, s.configListeners)
+	s.mu.RUnlock()
+
+	for _, fn := range listeners {
+		fn()
+	}
 }
 
 // ResolvePackwiz looks for a usable binary and records it. A failure is

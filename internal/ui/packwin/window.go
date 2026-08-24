@@ -2,14 +2,13 @@ package packwin
 
 import (
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 
+	"github.com/TRC-Loop/Packwiz-Studio/internal/config"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/git"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/pack"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/studio"
 	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/tokens"
-	"github.com/TRC-Loop/Packwiz-Studio/internal/ui/widgets"
 )
 
 // Window is a pack open for editing.
@@ -22,6 +21,10 @@ type Window struct {
 	// gitAvailable records whether a git binary exists. Combined with the
 	// setting it decides whether git features appear at all.
 	gitAvailable bool
+
+	// hadGit is what gitEnabled reported when the window was last built,
+	// so a settings change can be recognised as one that reshapes it.
+	hadGit bool
 
 	// onClose hands the window back to whatever opened this pack.
 	onClose func()
@@ -57,6 +60,12 @@ func New(sess *studio.Session, win fyne.Window, p pack.Pack, onClose func()) *Wi
 		current:      ActivityMods,
 	}
 
+	// Reopening a pack lands on the section it was left on, unless that
+	// section is not available any more.
+	if last := sess.Cfg.Prefs(p.Dir).Activity; last != "" {
+		w.current = last
+	}
+
 	w.deps = &activityDeps{
 		sess:          sess,
 		win:           win,
@@ -74,43 +83,18 @@ func New(sess *studio.Session, win fyne.Window, p pack.Pack, onClose func()) *Wi
 	w.rail = newActivityBar(w.items, w.current, w.selectActivity)
 
 	w.root = w.build()
+	w.hadGit = w.gitEnabled()
+
+	// A remembered section may no longer exist, for instance a git one
+	// after the integration was turned off.
+	if !w.has(w.current) {
+		w.current = ActivityMods
+	}
+
 	w.selectActivity(w.current)
+	w.watchConfig()
 
 	return w
-}
-
-// build assembles the window's panes.
-func (w *Window) build() *fyne.Container {
-	bg := canvas.NewRectangle(tokens.ColorBG)
-	body := container.NewStack(bg, w.main)
-
-	// The side panel keeps its width while the detail area takes the
-	// slack, so widening the window widens the content rather than the
-	// list.
-	panes := container.NewBorder(nil, nil, w.side.object(), nil, body)
-
-	foot := container.NewVBox(w.drawer.object(), w.status.object())
-
-	return container.NewBorder(
-		w.head, foot, w.rail.object(), nil,
-		panes,
-	)
-}
-
-// header names the pack and shows its logo.
-func (w *Window) header() fyne.CanvasObject {
-	bg := canvas.NewRectangle(tokens.ColorSurface)
-
-	title := container.NewHBox(
-		widgets.PackLogo(pack.IconPath(w.pack.Dir), tokens.IconPackLogo),
-		container.NewCenter(widgets.SubHeading(w.pack.Name)),
-	)
-
-	line := container.NewBorder(nil, nil,
-		widgets.Inset(tokens.SpaceMD, tokens.SpaceSM, title), nil, nil)
-
-	return container.NewStack(bg,
-		container.NewBorder(nil, widgets.Hairline(), nil, nil, line))
 }
 
 // Install puts the pack window into its window and starts its refreshes.
@@ -169,6 +153,10 @@ func (w *Window) selectActivity(id string) {
 	for _, a := range w.items {
 		if a.ID() != id {
 			continue
+		}
+
+		if w.current != id {
+			w.deps.setPrefs(func(p *config.Prefs) { p.Activity = id })
 		}
 
 		w.current = id

@@ -81,6 +81,10 @@ func (a *releasesActivity) doPublish(f *releaseForm, tag, token string) {
 			return err
 		}
 
+		if err := a.ensureTag(ctx, tag, release.Title); err != nil {
+			return err
+		}
+
 		a.notice("creating release " + tag + " on " + a.host.Kind.Name())
 
 		published, err := client.CreateRelease(ctx, release)

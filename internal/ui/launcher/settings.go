@@ -110,6 +110,10 @@ func (w *Window) applySettings(in settingsInput) {
 		return
 	}
 
+	// An open pack window built its icon rail from the old settings, so it
+	// has to hear about this.
+	w.sess.ConfigChanged()
+
 	go func() {
 		resolveErr := w.sess.ResolvePackwiz(context.Background())
 		fyne.Do(func() {

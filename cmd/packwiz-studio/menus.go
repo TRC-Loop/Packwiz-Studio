@@ -74,6 +74,7 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 	if w.GitEnabled() && w.HasRemoteHost() {
 		a.NewRelease = w.NewRelease
 		a.GenerateChangelog = w.GenerateChangelog
+		a.ForgetToken = w.ForgetReleaseToken
 	}
 
 	// The mod actions apply to the list's selection, so they only appear

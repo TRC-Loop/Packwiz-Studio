@@ -74,6 +74,9 @@ type Prefs struct {
 	ExportDir string `json:"exportDir,omitempty"`
 	// ViewMode is the browser's last-used presentation.
 	ViewMode ViewMode `json:"viewMode,omitempty"`
+	// Activity is the pack window section that was open last, so
+	// reopening a pack lands where the user left it.
+	Activity string `json:"activity,omitempty"`
 	// ChangelogFormat is the last-used release changelog rendering.
 	ChangelogFormat ChangelogFormat `json:"changelogFormat,omitempty"`
 	// LastExport is the most recent .mrpack produced for this pack, so a

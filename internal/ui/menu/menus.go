@@ -94,6 +94,8 @@ func releaseMenu(a Actions) *fyne.Menu {
 	items := compact(
 		item("New release", a.NewRelease),
 		item("Generate changelog", a.GenerateChangelog),
+		separator(),
+		item("Clear stored API token", a.ForgetToken),
 	)
 	return fyne.NewMenu("Release", items...)
 }
