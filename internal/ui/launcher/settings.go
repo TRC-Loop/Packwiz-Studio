@@ -44,11 +44,35 @@ func (w *Window) ShowSettings() {
 	gitEnabled := widget.NewCheck("Enable git and releases", nil)
 	gitEnabled.SetChecked(cfg.GitEnabled)
 
+	deps := widget.NewCheck("Install dependencies with a mod", nil)
+	deps.SetChecked(cfg.InstallDependencies)
+
+	tags := widget.NewCheck("Categories", nil)
+	tags.SetChecked(cfg.Browser.ShowTags)
+
+	license := widget.NewCheck("Licence", nil)
+	license.SetChecked(cfg.Browser.ShowLicense)
+
+	sides := widget.NewCheck("Which sides it supports", nil)
+	sides.SetChecked(cfg.Browser.ShowSides)
+
 	form := container.NewVBox(
 		widgets.SubHeading("packwiz"),
 		container.NewBorder(nil, nil, nil, browse, binPath),
 		widgets.Note("Where the packwiz binary lives. Leave it empty to use "+
 			"whichever packwiz is on your PATH."),
+
+		widgets.VSpace(tokens.SpaceLG),
+		widgets.SubHeading("Mods"),
+		deps,
+		widgets.Note("packwiz asks whether to add the libraries a mod needs. "+
+			"With this on the answer is yes, which is what a mod usually "+
+			"requires to load at all."),
+		widgets.VSpace(tokens.SpaceSM),
+		widgets.Muted("Show for each mod in the browser"),
+		tags,
+		license,
+		sides,
 
 		widgets.VSpace(tokens.SpaceLG),
 		widgets.SubHeading("Git"),
@@ -71,6 +95,12 @@ func (w *Window) ShowSettings() {
 			w.applySettings(settingsInput{
 				packwizPath: binPath.Text,
 				gitEnabled:  gitEnabled.Checked,
+				installDeps: deps.Checked,
+				browserPrefs: config.BrowserPrefs{
+					ShowTags:    tags.Checked,
+					ShowLicense: license.Checked,
+					ShowSides:   sides.Checked,
+				},
 			})
 		}, w.win)
 
@@ -80,8 +110,10 @@ func (w *Window) ShowSettings() {
 
 // settingsInput is what the settings dialog collected.
 type settingsInput struct {
-	packwizPath string
-	gitEnabled  bool
+	packwizPath  string
+	gitEnabled   bool
+	installDeps  bool
+	browserPrefs config.BrowserPrefs
 }
 
 // applySettings stores the settings, then re-resolves packwiz so a
@@ -90,6 +122,8 @@ func (w *Window) applySettings(in settingsInput) {
 	err := w.sess.Cfg.Update(func(c *config.Config) {
 		c.PackwizPath = in.packwizPath
 		c.GitEnabled = in.gitEnabled
+		c.InstallDependencies = in.installDeps
+		c.Browser = in.browserPrefs
 	})
 	if err != nil {
 		dialog.ShowError(err, w.win)

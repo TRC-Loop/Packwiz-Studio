@@ -50,6 +50,30 @@ func (c *Client) run(ctx context.Context, args ...string) (cmdrun.Result, error)
 	})
 }
 
+// declining is the stdin fed to a command run without -y, answering no to
+// whatever it asks. Several lines are supplied because a command may ask
+// more than once, and the reader reaching EOF ends the command rather than
+// leaving it waiting.
+const declining = "n\nn\nn\nn\n"
+
+// runDeclining invokes packwiz without -y, answering no to its prompts.
+//
+// This is how "do not install dependencies" is expressed: packwiz has no
+// flag for it, only a prompt, and -y answers yes to everything. Every
+// other call uses -y, so this is reserved for the one case where the
+// default answer is not what the user asked for.
+func (c *Client) runDeclining(ctx context.Context, args ...string) (cmdrun.Result, error) {
+	if c.bin == "" {
+		return cmdrun.Result{ExitCode: -1}, ErrNoBinary
+	}
+	return c.runner.Run(ctx, cmdrun.Spec{
+		Name:  c.bin,
+		Args:  args,
+		Dir:   c.dir,
+		Stdin: declining,
+	})
+}
+
 // runIn invokes packwiz in an explicit directory, for commands that run
 // before a pack exists.
 func (c *Client) runIn(ctx context.Context, dir string, args ...string) (cmdrun.Result, error) {

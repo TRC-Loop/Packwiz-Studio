@@ -83,9 +83,8 @@ const (
 	// row and button row, which scrolling content has to leave free.
 	DialogChrome float32 = 96
 
-	// ExportHeight sizes the export dialog, which also carries the side
-	// summary under its fields.
-	ExportHeight float32 = 460
+	// ExportHeight sizes the export dialog.
+	ExportHeight float32 = 340
 
 	// CloneHeight sizes the clone dialog.
 	CloneHeight float32 = 400

@@ -1,8 +1,6 @@
 package packwin
 
 import (
-	"context"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	fynetheme "fyne.io/fyne/v2/theme"
@@ -30,11 +28,16 @@ type browseActivity struct {
 	more     *widget.Button
 	main     *fyne.Container
 
+	scroll *container.Scroll
+
 	hits     []modrinth.Hit
 	total    int
 	offset   int
 	mode     config.ViewMode
 	searchID int
+	// loading guards the scroll trigger, which fires repeatedly while the
+	// pointer moves and would otherwise queue a request per event.
+	loading bool
 	// installed maps a project id to the mod already in the pack, so a
 	// card can say so instead of offering to add it twice.
 	installed map[string]string
@@ -89,16 +92,23 @@ func (a *browseActivity) layout() fyne.CanvasObject {
 	find := widget.NewButtonWithIcon("", fynetheme.SearchIcon(), func() { a.runSearch(0) })
 
 	bar := container.NewBorder(nil, nil, nil,
-		container.NewHBox(find, a.onlyPack, a.viewMode),
+		container.NewHBox(find, a.onlyPack, a.deps.dependencyCheck(), a.viewMode),
 		a.search,
 	)
 
 	body := container.NewVBox(a.message, a.results, widgets.VSpace(tokens.SpaceMD), a.more)
 
+	a.scroll = container.NewVScroll(widgets.Inset(tokens.SpaceLG, tokens.SpaceSM, body))
+
+	// Reaching the bottom loads the next page, so a long browse does not
+	// need a button press per twenty results. The button stays as the
+	// fallback for when a fetch failed.
+	a.scroll.OnScrolled = func(pos fyne.Position) { a.maybeLoadMore(pos) }
+
 	return container.NewBorder(
 		widgets.Inset(tokens.SpaceLG, tokens.SpaceSM, bar),
 		nil, nil, nil,
-		container.NewVScroll(widgets.Inset(tokens.SpaceLG, tokens.SpaceSM, body)),
+		a.scroll,
 	)
 }
 
@@ -144,50 +154,6 @@ func (a *browseActivity) modeIcon() fyne.Resource {
 		return fynetheme.ListIcon()
 	}
 	return fynetheme.GridIcon()
-}
-
-// runSearch queries Modrinth from the given offset. An offset of zero
-// replaces the results; anything else appends a page.
-//
-// Each search takes a ticket, and a reply is dropped unless its ticket is
-// still the current one. Typing quickly would otherwise let a slow early
-// reply land after a fast later one.
-func (a *browseActivity) runSearch(offset int) {
-	a.searchID++
-	ticket := a.searchID
-
-	query := modrinth.Query{Text: a.search.Text, Offset: offset}
-	if a.onlyPack.Checked {
-		query.MCVersion = a.deps.pack.MCVersion
-		query.Loader = a.deps.pack.Loader
-	}
-
-	a.setMessage("Searching Modrinth")
-
-	go func() {
-		res, err := a.client.Search(context.Background(), query)
-
-		fyne.Do(func() {
-			if ticket != a.searchID {
-				return
-			}
-			if err != nil {
-				a.setMessage(err.Error())
-				return
-			}
-
-			if offset == 0 {
-				a.hits = res.Hits
-			} else {
-				a.hits = append(a.hits, res.Hits...)
-			}
-			a.total = res.Total
-			a.offset = res.Offset
-
-			a.clearMessage()
-			a.renderResults()
-		})
-	}()
 }
 
 // setMessage replaces the result area with a note.

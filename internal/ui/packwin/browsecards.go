@@ -69,7 +69,7 @@ func (a *browseActivity) card(h modrinth.Hit) fyne.CanvasObject {
 
 	head := container.NewBorder(nil, nil,
 		widgets.RemoteImage(h.IconURL, tokens.IconModCard), nil,
-		container.NewVBox(title, widgets.Dim(categoryLine(h))),
+		container.NewVBox(title, widgets.Dim(a.detailLine(h))),
 	)
 
 	body := container.NewBorder(
@@ -80,21 +80,45 @@ func (a *browseActivity) card(h modrinth.Hit) fyne.CanvasObject {
 	return widgets.NewPanel(body)
 }
 
-// listRow is one compact entry: small icon, title, description on a line.
+// listRow is one compact entry: small icon, title, description, and
+// whichever details the settings ask for.
+//
+// Every line is canvas text so they share a left edge, since a Label
+// would carry the theme's inner padding and sit indented from the rest.
 func (a *browseActivity) listRow(h modrinth.Hit) fyne.CanvasObject {
-	// Both lines are canvas text so they share a left edge, since a Label
-	// would carry the theme's inner padding and sit indented.
-	text := container.NewVBox(
+	lines := []fyne.CanvasObject{
 		widgets.Strong(h.Title),
 		widgets.Dim(h.Description),
-	)
+	}
+	if detail := a.detailLine(h); detail != "" {
+		lines = append(lines, widgets.Caption(detail))
+	}
 
 	row := container.NewBorder(nil, nil,
 		widgets.RemoteImage(h.IconURL, tokens.IconInline*2), a.cardAction(h),
-		text,
+		container.NewVBox(lines...),
 	)
 
 	return container.NewVBox(widgets.Inset(tokens.SpaceSM, tokens.SpaceXS, row), widgets.Hairline())
+}
+
+// detailLine assembles the optional detail line from the settings.
+func (a *browseActivity) detailLine(h modrinth.Hit) string {
+	prefs := a.deps.sess.Cfg.Get().Browser
+
+	var parts []string
+	if prefs.ShowTags {
+		if tags := categoryLine(h); tags != "" {
+			parts = append(parts, tags)
+		}
+	}
+	if prefs.ShowLicense && h.License != "" {
+		parts = append(parts, h.License)
+	}
+	if prefs.ShowSides {
+		parts = append(parts, h.Sides())
+	}
+	return strings.Join(parts, "  ")
 }
 
 // cardAction is the add control, or a note that the mod is already in the
@@ -122,9 +146,11 @@ func (a *browseActivity) cardAction(h modrinth.Hit) fyne.CanvasObject {
 // resolves an ambiguous search interactively, and the app runs with
 // prompts suppressed.
 func (a *browseActivity) add(h modrinth.Hit) {
+	deps := a.deps.installDependencies()
+
 	a.deps.run("add "+h.Title, func(ctx context.Context) error {
 		return exec(func() (cmdrun.Result, error) {
-			return a.deps.client().AddModrinth(ctx, h.Ref())
+			return a.deps.client().AddModrinth(ctx, h.Ref(), deps)
 		})
 	})
 }

@@ -18,12 +18,20 @@ func (c *Client) Refresh(ctx context.Context) (cmdrun.Result, error) {
 	return c.run(ctx, "refresh")
 }
 
-// AddModrinth adds a Modrinth project to the pack. The ref must be
-// unambiguous: a project ID or an exact slug from the browser, never a
-// free-text search, because packwiz resolves an ambiguous search
-// interactively and the app runs non-interactively.
-func (c *Client) AddModrinth(ctx context.Context, ref string) (cmdrun.Result, error) {
-	return c.run(ctx, "modrinth", "add", ref)
+// AddModrinth adds a Modrinth project to the pack.
+//
+// The ref must be unambiguous: a project ID or an exact slug from the
+// browser, never a free-text search, because packwiz resolves an
+// ambiguous search interactively.
+//
+// packwiz asks whether to add the mod's dependencies. With deps true the
+// usual -y answers yes; with it false the prompts are answered no, since
+// packwiz offers no flag for the choice.
+func (c *Client) AddModrinth(ctx context.Context, ref string, deps bool) (cmdrun.Result, error) {
+	if deps {
+		return c.run(ctx, "modrinth", "add", ref)
+	}
+	return c.runDeclining(ctx, "modrinth", "add", ref)
 }
 
 // AddURL adds a file from a direct download link, for a mod that is not

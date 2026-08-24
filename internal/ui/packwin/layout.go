@@ -20,15 +20,48 @@ func (w *Window) build() *fyne.Container {
 	// The side panel keeps its width while the detail area takes the
 	// slack, so widening the window widens the content rather than the
 	// list.
-	panes := container.NewBorder(nil, nil, w.side.object(), nil, body)
+	w.panes = container.NewBorder(nil, nil, w.side.object(), nil, body)
 
-	foot := container.NewVBox(w.drawer.object(), w.status.object())
+	// The content and the output drawer share a draggable divider, so the
+	// drawer can be sized to whatever is being read. The area is a stack
+	// whose contents are swapped when the drawer opens and closes: a split
+	// with a hidden child still reserves room for it.
+	w.contentArea = container.NewStack(w.panes)
 
 	return container.NewBorder(
-		w.head, foot, w.rail.object(), nil,
-		panes,
+		w.head, w.status.object(), w.rail.object(), nil,
+		w.contentArea,
 	)
 }
+
+// setDrawerOpen puts the drawer into the content area, or takes it out.
+func (w *Window) setDrawerOpen(open bool) {
+	if !open {
+		w.contentArea.Objects = []fyne.CanvasObject{w.panes}
+		w.contentArea.Refresh()
+		return
+	}
+
+	split := container.NewVSplit(w.panes, w.drawer.object())
+	split.SetOffset(w.drawerOffset())
+
+	w.contentArea.Objects = []fyne.CanvasObject{split}
+	w.contentArea.Refresh()
+	w.split = split
+}
+
+// drawerOffset is how much of the height the content keeps when the
+// drawer opens. It is remembered per pack, so a drawer dragged tall stays
+// tall the next time it is opened.
+func (w *Window) drawerOffset() float64 {
+	if saved := w.deps.prefs().DrawerOffset; saved > 0 && saved < 1 {
+		return saved
+	}
+	return defaultDrawerOffset
+}
+
+// defaultDrawerOffset leaves the drawer about a quarter of the height.
+const defaultDrawerOffset = 0.75
 
 // header names the pack and shows its image.
 //

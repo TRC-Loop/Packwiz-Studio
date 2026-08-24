@@ -38,6 +38,12 @@ type Config struct {
 	// UseKeyring stores release tokens in the OS keyring. When false the
 	// app prompts for a token per release instead of persisting it.
 	UseKeyring bool `json:"useKeyring"`
+	// Browser holds what the Modrinth browser shows per result.
+	Browser BrowserPrefs `json:"browser"`
+	// InstallDependencies lets packwiz pull in a mod's dependencies when
+	// it is added. It is on by default: a mod without its libraries does
+	// not load, so the useful default is to take them.
+	InstallDependencies bool `json:"installDependencies"`
 	// GitEnabled turns the app's git integration on. When false the app
 	// touches git in no way at all: the Git and Releases activities, the
 	// Git and Release menus, and the branch and dirty state in the status
@@ -77,6 +83,10 @@ type Prefs struct {
 	// Activity is the pack window section that was open last, so
 	// reopening a pack lands where the user left it.
 	Activity string `json:"activity,omitempty"`
+	// DrawerOffset is how much of the window height the content keeps
+	// when the output drawer is open, so a drawer dragged to a size stays
+	// that size. Zero means the default.
+	DrawerOffset float64 `json:"drawerOffset,omitempty"`
 	// ChangelogFormat is the last-used release changelog rendering.
 	ChangelogFormat ChangelogFormat `json:"changelogFormat,omitempty"`
 	// LastExport is the most recent .mrpack produced for this pack, so a
@@ -88,7 +98,12 @@ type Prefs struct {
 // this, so a key missing from the file keeps its default here rather than
 // falling back to Go's zero value.
 func defaults() Config {
-	return Config{UseKeyring: true, GitEnabled: true}
+	return Config{
+		UseKeyring:          true,
+		GitEnabled:          true,
+		InstallDependencies: true,
+		Browser:             defaultBrowserPrefs(),
+	}
 }
 
 // withDefaults fills zero-valued fields that need a non-zero default.

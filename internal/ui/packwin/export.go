@@ -63,12 +63,6 @@ func (w *Window) Export() {
 		name,
 		widgets.VSpace(tokens.SpaceSM),
 		remember,
-
-		widgets.VSpace(tokens.SpaceMD),
-		widgets.Hairline(),
-		widgets.VSpace(tokens.SpaceMD),
-		widgets.Muted("Sides"),
-		w.sideSummary(),
 	)
 
 	size := widgets.FitDialog(w.win, tokens.FormWidth, tokens.ExportHeight)

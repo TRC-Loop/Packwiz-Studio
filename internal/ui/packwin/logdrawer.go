@@ -26,6 +26,9 @@ type logDrawer struct {
 
 	cancel   func()
 	autoTail bool
+	// open tracks whether the drawer is showing, since the window rather
+	// than the drawer owns where it sits in the layout.
+	open bool
 }
 
 // newLogDrawer builds the drawer and replays whatever the bus already
@@ -78,21 +81,20 @@ func (d *logDrawer) header() fyne.CanvasObject {
 // object returns the drawer for placement.
 func (d *logDrawer) object() fyne.CanvasObject { return d.root }
 
-// visible reports whether the drawer is open.
-func (d *logDrawer) visible() bool { return d.root.Visible() }
-
-// toggle opens or closes the drawer.
-func (d *logDrawer) toggle() {
-	if d.root.Visible() {
-		d.root.Hide()
+// setOpen records the drawer's state and scrolls to the newest output
+// when it is opened.
+//
+// The window decides where the drawer sits, since it shares a draggable
+// divider with the content, so this only tracks the state.
+func (d *logDrawer) setOpen(open bool) {
+	d.open = open
+	if open {
+		d.root.Show()
+		d.tail()
 		return
 	}
-	d.root.Show()
-	d.tail()
+	d.root.Hide()
 }
-
-// close hides the drawer without toggling.
-func (d *logDrawer) close() { d.root.Hide() }
 
 // detach stops listening to the bus. The pack window calls this when it
 // gives up its window, so a closed drawer does not keep receiving output.
@@ -114,7 +116,7 @@ func (d *logDrawer) append(e logbus.Entry) {
 	}
 
 	d.grid.Refresh()
-	if d.autoTail && d.root.Visible() {
+	if d.autoTail && d.open {
 		d.tail()
 	}
 }

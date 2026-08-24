@@ -1,16 +1,12 @@
 package packwin
 
 import (
-	"image/color"
-	"strings"
-
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	fynetheme "fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/PalisadeMC/Packwiz-Studio/internal/tomlhl"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/tokens"
 	"github.com/PalisadeMC/Packwiz-Studio/internal/ui/widgets"
 )
@@ -49,6 +45,13 @@ func newEditor(onSave func(rel, content string)) *editor {
 
 	e.entry.TextStyle = fyne.TextStyle{Monospace: true}
 	e.entry.Wrapping = fyne.TextWrapOff
+	e.entry.OnChanged = func(text string) {
+		if text == e.original {
+			e.markSaved()
+			return
+		}
+		e.markDirty()
+	}
 
 	e.actions = container.NewHBox()
 	head := container.NewBorder(nil, nil,
@@ -70,17 +73,32 @@ func (e *editor) dirty() bool {
 	return e.editing && e.entry.Text != e.original
 }
 
-// load shows a file, leaving edit mode.
+// load opens a file for editing.
+//
+// Selecting a file goes straight into edit mode: this screen exists to
+// change something, and making every edit a two step affair is friction
+// for no gain. The highlighted read view stays available from the header.
 func (e *editor) load(rel, content string) {
 	e.rel = rel
 	e.original = content
-	e.editing = false
 
 	e.title.Text = rel
 	e.title.Refresh()
 
 	e.entry.SetText(content)
-	e.showView()
+	e.showEdit()
+}
+
+// save writes the current text through the save handler. It is what both
+// the button and the keyboard shortcut call.
+func (e *editor) save() {
+	if !e.editing || e.rel == "" {
+		return
+	}
+
+	e.original = e.entry.Text
+	e.onSave(e.rel, e.entry.Text)
+	e.markSaved()
 }
 
 // showView renders the highlighted read-only grid.
@@ -109,15 +127,14 @@ func (e *editor) setActions() {
 	e.actions.Objects = nil
 
 	if e.editing {
-		save := widget.NewButtonWithIcon("Save", fynetheme.DocumentSaveIcon(), func() {
-			e.original = e.entry.Text
-			e.onSave(e.rel, e.entry.Text)
-			e.showView()
-		})
-		cancel := widget.NewButton("Cancel", e.showView)
-		cancel.Importance = widget.LowImportance
+		save := widget.NewButtonWithIcon("Save", fynetheme.DocumentSaveIcon(), e.save)
+		save.Importance = widget.HighImportance
 
-		e.actions.Add(cancel)
+		view := widget.NewButtonWithIcon("Highlight",
+			fynetheme.VisibilityIcon(), e.showView)
+		view.Importance = widget.LowImportance
+
+		e.actions.Add(view)
 		e.actions.Add(save)
 	} else {
 		edit := widget.NewButtonWithIcon("Edit", fynetheme.DocumentCreateIcon(), e.showEdit)
@@ -126,62 +143,19 @@ func (e *editor) setActions() {
 	e.actions.Refresh()
 }
 
-// highlight turns a file into styled grid rows.
-func highlight(content string) []widget.TextGridRow {
-	lines := strings.Split(content, "\n")
-
-	rows := make([]widget.TextGridRow, 0, len(lines))
-	for _, line := range lines {
-		var cells []widget.TextGridCell
-
-		for _, tok := range tomlhl.Line(line) {
-			style := tokenStyle(tok.Kind)
-			for _, r := range tok.Text {
-				cells = append(cells, widget.TextGridCell{Rune: r, Style: style})
-			}
-		}
-		rows = append(rows, widget.TextGridRow{Cells: cells})
-	}
-	return rows
+// markSaved restates the title now that there are no pending changes.
+func (e *editor) markSaved() {
+	e.title.Text = e.rel
+	e.title.Color = tokens.ColorMuted
+	e.title.Refresh()
 }
 
-// tokenStyle maps a token kind onto a shade and weight.
-//
-// Syntax highlighting stays grayscale: the status colours mean state, and
-// spending them on syntax would dilute that. Four shades plus bold and
-// italic separate the kinds well enough for a file this size.
-func tokenStyle(kind tomlhl.Kind) widget.TextGridStyle {
-	switch kind {
-	case tomlhl.KindComment:
-		return &widget.CustomTextGridStyle{
-			FGColor:   tokens.ColorDim,
-			TextStyle: fyne.TextStyle{Italic: true, Monospace: true},
-		}
-	case tomlhl.KindTable:
-		return &widget.CustomTextGridStyle{
-			FGColor:   tokens.ColorStrong,
-			TextStyle: fyne.TextStyle{Bold: true, Monospace: true},
-		}
-	case tomlhl.KindKey:
-		return mono(tokens.ColorText)
-	case tomlhl.KindString:
-		return mono(tokens.ColorMuted)
-	case tomlhl.KindNumber, tomlhl.KindBool:
-		return &widget.CustomTextGridStyle{
-			FGColor:   tokens.ColorMuted,
-			TextStyle: fyne.TextStyle{Bold: true, Monospace: true},
-		}
-	case tomlhl.KindPunct:
-		return mono(tokens.ColorDim)
-	default:
-		return mono(tokens.ColorText)
+// markDirty marks the title so unsaved changes are visible.
+func (e *editor) markDirty() {
+	if e.rel == "" {
+		return
 	}
-}
-
-// mono is a plain monospace style in one colour.
-func mono(c color.Color) widget.TextGridStyle {
-	return &widget.CustomTextGridStyle{
-		FGColor:   c,
-		TextStyle: fyne.TextStyle{Monospace: true},
-	}
+	e.title.Text = e.rel + "  (unsaved)"
+	e.title.Color = tokens.ColorWarning
+	e.title.Refresh()
 }

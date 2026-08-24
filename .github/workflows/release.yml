@@ -50,6 +50,7 @@ jobs:
             --src ./cmd/packwiz-studio \
             --name "Packwiz Studio" \
             --app-id "$APP_ID" \
+            --icon "$GITHUB_WORKSPACE/Icon.png" \
             --app-version "${VERSION#v}"
         env:
           VERSION: ${{ github.event.release.tag_name || inputs.tag }}
@@ -93,6 +94,7 @@ jobs:
             --src ./cmd/packwiz-studio \
             --name "Packwiz Studio" \
             --app-id "$APP_ID" \
+            --icon "$GITHUB_WORKSPACE/Icon.png" \
             --app-version "${VERSION#v}"
           mv "Packwiz Studio.exe" "$APP_NAME-windows-amd64.exe"
         env:

@@ -43,6 +43,14 @@ type Window struct {
 	status *statusBar
 	root   *fyne.Container
 
+	// panes is the rail's content: the list pane beside the detail area.
+	panes *fyne.Container
+	// contentArea holds either the panes alone or a split of the panes
+	// over the output drawer.
+	contentArea *fyne.Container
+	// split is the divider between content and drawer while it is open.
+	split *container.Split
+
 	current string
 	items   []Activity
 }
@@ -103,6 +111,7 @@ func (w *Window) Install() {
 	w.win.SetTitle(w.pack.Name)
 	w.win.SetContent(w.root)
 	w.win.Resize(fyne.NewSize(tokens.PackWindowWidth, tokens.PackWindowHeight))
+	w.installShortcuts()
 	w.RefreshStatus()
 }
 

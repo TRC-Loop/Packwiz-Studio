@@ -7,6 +7,7 @@
 BINARY   := packwiz-studio
 APP_NAME := Packwiz Studio
 APP_ID   := sh.arne.packwizstudio
+ICON     := $(CURDIR)/Icon.png
 PKG      := ./cmd/packwiz-studio
 DIST     := dist
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
@@ -25,7 +26,18 @@ build: ## Build the app for this machine
 	go build -o $(BINARY) $(PKG)
 
 .PHONY: run
-run: ## Build and run the app
+run: ## Build and run the app, as a bundle on macOS so the name is right
+	@# macOS takes the application menu title from the bundle. A bare
+	@# binary shows its own filename there instead, so a plain go run says
+	@# "packwiz-studio" rather than "Packwiz Studio".
+	@if [ "$$(uname)" = "Darwin" ] && command -v fyne >/dev/null; then \
+		$(MAKE) --no-print-directory app; \
+	else \
+		go run $(PKG); \
+	fi
+
+.PHONY: run-cli
+run-cli: ## Run the bare binary, skipping the bundle
 	go run $(PKG)
 
 .PHONY: release
@@ -38,14 +50,14 @@ package: ## Bundle a native app package with the fyne tool
 	@command -v fyne >/dev/null || { \
 		echo "fyne tool not installed: go install fyne.io/tools/cmd/fyne@latest"; \
 		exit 1; }
-	fyne package --release --src $(PKG) --name "$(APP_NAME)" --app-id $(APP_ID)
+	fyne package --release --src $(PKG) --name "$(APP_NAME)" --app-id $(APP_ID) --icon $(ICON)
 
 .PHONY: app
 app: ## Build and launch the app bundle, so the OS shows the real app name
 	@command -v fyne >/dev/null || { \
 		echo "fyne tool not installed: go install fyne.io/tools/cmd/fyne@latest"; \
 		exit 1; }
-	fyne package --src $(PKG) --name "$(APP_NAME)" --app-id $(APP_ID)
+	fyne package --src $(PKG) --name "$(APP_NAME)" --app-id $(APP_ID) --icon $(ICON)
 	@rm -rf "$(DIST)/$(APP_NAME).app"
 	@mkdir -p $(DIST)
 	@mv "$(APP_NAME).app" "$(DIST)/"

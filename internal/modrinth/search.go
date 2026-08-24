@@ -21,6 +21,40 @@ type Hit struct {
 	ProjectType string   `json:"project_type"`
 	Versions    []string `json:"versions"`
 	Loaders     []string `json:"loaders"`
+	// License is the project's licence identifier, which decides whether
+	// a pack may redistribute the mod.
+	License string `json:"license"`
+	// ClientSide and ServerSide report support per side, each being
+	// required, optional or unsupported.
+	ClientSide string `json:"client_side"`
+	ServerSide string `json:"server_side"`
+}
+
+// Sides describes which sides a mod supports, in words.
+func (h Hit) Sides() string {
+	client := supported(h.ClientSide)
+	server := supported(h.ServerSide)
+
+	switch {
+	case client && server:
+		return "client and server"
+	case client:
+		return "client only"
+	case server:
+		return "server only"
+	default:
+		return "side not stated"
+	}
+}
+
+// supported reads one of Modrinth's side values.
+func supported(value string) bool {
+	switch strings.ToLower(value) {
+	case "required", "optional":
+		return true
+	default:
+		return false
+	}
 }
 
 // Ref is the argument packwiz is given to add this project. The project

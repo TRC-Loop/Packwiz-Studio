@@ -68,6 +68,11 @@ func (d *activityDeps) addMenu() fyne.CanvasObject {
 	return d.addActions()
 }
 
+// notice writes app commentary to the log drawer.
+func (d *activityDeps) notice(text string) {
+	d.sess.Bus.Publish(logbus.KindNotice, text)
+}
+
 // prefs returns this pack's remembered choices.
 func (d *activityDeps) prefs() config.Prefs {
 	return d.sess.Cfg.Prefs(d.pack.Dir)
