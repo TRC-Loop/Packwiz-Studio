@@ -40,9 +40,11 @@ jobs:
       - name: Install the fyne tool
         run: go install fyne.io/tools/cmd/fyne@latest
 
-      # A universal binary covers both Apple silicon and Intel, so one
-      # download works on any Mac.
-      - name: Package universal app bundle
+      # The fyne tool builds for the runner's own architecture, and the
+      # macOS runners are Apple silicon, so this bundle is arm64 and is
+      # named as such. An Intel build would need its own slice built with
+      # CGO_CFLAGS="-arch x86_64" and lipo to join the two.
+      - name: Package the app bundle
         run: |
           fyne package \
             --target darwin \
@@ -60,7 +62,7 @@ jobs:
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             "Packwiz Studio.app" \
-            "$APP_NAME-macos-universal.zip"
+            "$APP_NAME-macos-arm64.zip"
 
       - uses: actions/upload-artifact@v4
         with:
