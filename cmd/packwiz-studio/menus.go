@@ -69,6 +69,13 @@ func (s *shell) packMenu(w *packwin.Window) *fyne.MainMenu {
 		a.OpenRemote = w.OpenRemote
 	}
 
+	// A release needs somewhere to publish to, so the Release menu only
+	// appears once a remote host has been resolved.
+	if w.GitEnabled() && w.HasRemoteHost() {
+		a.NewRelease = w.NewRelease
+		a.GenerateChangelog = w.GenerateChangelog
+	}
+
 	// The mod actions apply to the list's selection, so they only appear
 	// once something is selected.
 	if _, ok := w.SelectedMod(); ok {
